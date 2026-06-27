@@ -1,7 +1,7 @@
 [project]
 name = "jarvis"
-version = "0.1.1"
-description = "Add your description here"
+version = "0.1.2"
+description = "Personal Assistant Application that focuses on project building and evolving over time, totally local or hosted at home."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

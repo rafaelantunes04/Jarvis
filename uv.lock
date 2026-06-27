@@ -356,11 +356,10 @@ wheels = [
 
 [[package]]
 name = "jarvis"
-version = "0.1.0"
+version = "0.1.2"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
-    { name = "httpx" },
     { name = "ollama" },
     { name = "python-dotenv" },
     { name = "requests" },
@@ -370,7 +369,6 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.138.1" },
-    { name = "httpx", specifier = ">=0.28.1" },
     { name = "ollama", specifier = ">=0.6.2" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "requests", specifier = ">=2.34.2" },
