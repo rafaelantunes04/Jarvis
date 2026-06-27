@@ -1,0 +1,3247 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projeto Jarvis — Arquitetura & Plano v7</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e2a;
+    --surface3: #1f2333;
+    --border: #252a38;
+    --accent: #4f8ef7;
+    --accent2: #7c5cf4;
+    --green: #3ecf8e;
+    --yellow: #f5c842;
+    --red: #f76f6f;
+    --orange: #f0944d;
+    --text: #dde3f0;
+    --muted: #6b7590;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #0d0f14 0%, #111527 50%, #0d1020 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 72px 40px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(79,142,247,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 30%;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(124,92,244,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    background: linear-gradient(135deg, #fff 30%, #4f8ef7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+  .hero-sub {
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 620px;
+    line-height: 1.6;
+  }
+  .hero-meta {
+    margin-top: 32px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--muted);
+  }
+  .badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+  .badge .dot.yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+  .badge .dot.purple { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+
+  .version-diff {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    background: rgba(62,207,142,0.08);
+    border: 1px solid rgba(62,207,142,0.2);
+    border-radius: 6px;
+    padding: 5px 12px;
+  }
+
+  /* ── Layout ── */
+  section { padding: 56px 40px; max-width: 1080px; margin: 0 auto; }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .section-intro {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+    max-width: 680px;
+    line-height: 1.6;
+  }
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 40px;
+  }
+
+  /* ── Pills ── */
+  .pill {
+    display: inline-block;
+    font-size: 11px;
+    font-family: var(--mono);
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+  .pill.build  { background: rgba(62,207,142,0.1);  color: var(--green); }
+  .pill.config { background: rgba(79,142,247,0.1);  color: var(--accent); }
+  .pill.skip   { background: rgba(247,111,111,0.1); color: var(--red); }
+  .pill.new    { background: rgba(124,92,244,0.12); color: var(--accent2); }
+  .pill.warn   { background: rgba(245,200,66,0.1);  color: var(--yellow); }
+
+  .tech-tag {
+    display: inline-block;
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(79,142,247,0.08);
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-right: 4px;
+  }
+  .tech-tag.purple { color: var(--accent2); background: rgba(124,92,244,0.08); border-color: rgba(124,92,244,0.2); }
+  .tech-tag.green  { color: var(--green);   background: rgba(62,207,142,0.08); border-color: rgba(62,207,142,0.2); }
+  .tech-tag.yellow { color: var(--yellow);  background: rgba(245,200,66,0.08); border-color: rgba(245,200,66,0.2); }
+  .tech-tag.orange { color: var(--orange);  background: rgba(240,148,77,0.08); border-color: rgba(240,148,77,0.2); }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 24px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #303650; }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .icon.blue   { background: rgba(79,142,247,0.12); }
+  .icon.purple { background: rgba(124,92,244,0.12); }
+  .icon.green  { background: rgba(62,207,142,0.12); }
+  .icon.yellow { background: rgba(245,200,66,0.12); }
+  .icon.red    { background: rgba(247,111,111,0.12); }
+  .icon.orange { background: rgba(240,148,77,0.12); }
+  .card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── Note box ── */
+  .note-box {
+    background: rgba(245,200,66,0.05);
+    border: 1px solid rgba(245,200,66,0.2);
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .note-box.blue {
+    background: rgba(79,142,247,0.05);
+    border-color: rgba(79,142,247,0.2);
+  }
+  .note-box.green {
+    background: rgba(62,207,142,0.05);
+    border-color: rgba(62,207,142,0.2);
+  }
+  .note-box.purple {
+    background: rgba(124,92,244,0.05);
+    border-color: rgba(124,92,244,0.2);
+  }
+  .note-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .note-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .note-title.yellow { color: var(--yellow); }
+  .note-title.blue   { color: var(--accent); }
+  .note-title.green  { color: var(--green); }
+  .note-title.purple { color: var(--accent2); }
+  .note-text  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── Architecture grid ── */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .arch-cell {
+    background: var(--surface);
+    padding: 20px 22px;
+  }
+  .arch-cell.span2 { grid-column: span 2; }
+  .arch-cell.span3 { grid-column: span 3; }
+  .arch-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .arch-label.purple { color: var(--accent2); }
+  .arch-label.green  { color: var(--green); }
+  .arch-label.yellow { color: var(--yellow); }
+  .arch-label.orange { color: var(--orange); }
+  .arch-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .arch-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ── Use Case Flow ── */
+  .usecase-block {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .usecase-header {
+    background: var(--surface2);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .usecase-icon {
+    font-size: 20px;
+  }
+  .usecase-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .usecase-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  .usecase-body {
+    background: var(--surface);
+    padding: 20px 24px;
+  }
+  .usecase-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 20px;
+    overflow-x: auto;
+  }
+  .flow-step {
+    flex: 1;
+    min-width: 130px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    position: relative;
+  }
+  .flow-step-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .flow-step-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    color: var(--border);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .usecase-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .detail-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .detail-box-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .detail-box-label.blue   { color: var(--accent); }
+  .detail-box-label.green  { color: var(--green); }
+  .detail-box-label.purple { color: var(--accent2); }
+  .detail-box-label.yellow { color: var(--yellow); }
+  .detail-box ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .detail-box ul li {
+    font-size: 12.5px;
+    color: var(--muted);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.4;
+  }
+  .detail-box ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--border);
+  }
+
+  /* ── Memory Layers ── */
+  .memory-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .mem-layer {
+    display: grid;
+    grid-template-columns: 180px 1fr auto;
+    gap: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    align-items: stretch;
+  }
+  .mem-layer:last-child { border-bottom: none; }
+  .mem-layer-name {
+    padding: 18px 20px;
+    border-right: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .mem-layer-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .mem-layer-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .mem-layer-body {
+    padding: 18px 20px;
+  }
+  .mem-layer-body p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  .mem-layer-body p:last-child { margin-bottom: 0; }
+  .mem-layer-tech {
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    border-left: 1px solid var(--border);
+  }
+
+  /* ── Tool Registry ── */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .tool-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .tool-emoji {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .tool-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 3px;
+  }
+  .tool-desc {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  /* ── Decision table ── */
+  .decision-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .decision-table th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .decision-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text);
+  }
+  .decision-table tr:last-child td { border-bottom: none; }
+  .decision-table tr:hover td { background: rgba(255,255,255,0.015); }
+  .decision-table .name { font-weight: 600; color: #fff; font-size: 13px; }
+  .decision-table .why  { color: var(--muted); font-size: 12.5px; }
+
+  /* ── Hardware ── */
+  .hw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .hw-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .hw-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .hw-value { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .hw-note  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .hw-status {
+    display: inline-block;
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+  .hw-status.ok    { background: rgba(62,207,142,0.1); color: var(--green); }
+  .hw-status.warn  { background: rgba(245,200,66,0.1); color: var(--yellow); }
+  .hw-status.limit { background: rgba(247,111,111,0.1); color: var(--red); }
+
+  /* ── Model table ── */
+  .model-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin-bottom: 20px;
+  }
+  .model-table th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .model-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    color: var(--text);
+  }
+  .model-table tr:last-child td { border-bottom: none; }
+  .model-table tr:hover td { background: rgba(255,255,255,0.015); }
+  .model-table .mname { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent); }
+  .model-table .muse  { font-size: 12.5px; color: var(--muted); }
+  .vram-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .vram-bar { height: 6px; border-radius: 3px; background: var(--border); flex: 1; overflow: hidden; }
+  .vram-bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+  .vram-bar-fill.green  { background: var(--green); }
+  .vram-bar-fill.yellow { background: var(--yellow); }
+  .vram-num { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  /* ── Modes grid ── */
+  .modes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .mode-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    transition: border-color 0.2s;
+  }
+  .mode-card:hover { border-color: #303650; }
+  .mode-emoji { font-size: 22px; margin-bottom: 8px; }
+  .mode-name { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .mode-model {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .mode-desc { font-size: 12px; color: var(--muted); line-height: 1.45; }
+
+  /* ── Skip table ── */
+  .skip-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .skip-table th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .skip-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text);
+  }
+  .skip-table tr:last-child td { border-bottom: none; }
+  .skip-table .idea { font-weight: 600; color: var(--red); font-size: 13px; }
+  .skip-table .arrow { color: var(--muted); }
+  .skip-table .why { color: var(--muted); font-size: 12.5px; }
+
+  /* ── Timeline ── */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px; top: 8px; bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent2), var(--green));
+    border-radius: 2px;
+  }
+  .tl-item { position: relative; margin-bottom: 32px; }
+  .tl-dot {
+    position: absolute;
+    left: -29px; top: 4px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 8px rgba(79,142,247,0.5);
+  }
+  .tl-dot.purple { background: var(--accent2); box-shadow: 0 0 8px rgba(124,92,244,0.5); }
+  .tl-dot.green  { background: var(--green);   box-shadow: 0 0 8px rgba(62,207,142,0.5); }
+  .tl-dot.orange { background: var(--orange);  box-shadow: 0 0 8px rgba(240,148,77,0.5); }
+  .tl-week {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .tl-week.purple { color: var(--accent2); }
+  .tl-week.green  { color: var(--green); }
+  .tl-week.orange { color: var(--orange); }
+  .tl-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+  .tl-body  { font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .tl-tasks { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* ── Build vs Config ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ── Code block ── */
+  pre {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: #9db4d8;
+    overflow-x: auto;
+    margin-top: 16px;
+  }
+  pre .c  { color: #4a5470; }
+  pre .k  { color: var(--accent2); }
+  pre .s  { color: var(--green); }
+  pre .n  { color: var(--accent); }
+
+  /* ── Inline code ── */
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(79,142,247,0.08);
+    border: 1px solid rgba(79,142,247,0.15);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+
+  /* ── New badge ── */
+  .new-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    background: rgba(124,92,244,0.12);
+    border: 1px solid rgba(124,92,244,0.25);
+    border-radius: 3px;
+    padding: 1px 6px;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+
+  /* ── Section label ── */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 32px 40px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    border-top: 1px solid var(--border);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Pipeline steps ── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 24px 0;
+    overflow-x: auto;
+  }
+  .pipe-step {
+    flex: 1;
+    min-width: 140px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 16px 16px;
+    position: relative;
+  }
+  .pipe-step:first-child { border-radius: 10px 0 0 10px; }
+  .pipe-step:last-child  { border-radius: 0 10px 10px 0; }
+  .pipe-step.highlight { background: rgba(79,142,247,0.06); border-color: rgba(79,142,247,0.3); }
+  .pipe-step.highlight.purple { background: rgba(124,92,244,0.06); border-color: rgba(124,92,244,0.3); }
+  .pipe-step.highlight.green  { background: rgba(62,207,142,0.06); border-color: rgba(62,207,142,0.3); }
+  .pipe-step.highlight.orange { background: rgba(240,148,77,0.06); border-color: rgba(240,148,77,0.3); }
+  .pipe-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .pipe-num.purple { color: var(--accent2); }
+  .pipe-num.green  { color: var(--green); }
+  .pipe-num.orange { color: var(--orange); }
+  .pipe-title { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .pipe-desc  { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  .pipe-tag   { display: inline-block; margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--accent); background: rgba(79,142,247,0.08); border: 1px solid rgba(79,142,247,0.15); border-radius: 3px; padding: 1px 6px; }
+  .pipe-tag.purple { color: var(--accent2); background: rgba(124,92,244,0.08); border-color: rgba(124,92,244,0.2); }
+  .pipe-tag.green  { color: var(--green); background: rgba(62,207,142,0.08); border-color: rgba(62,207,142,0.2); }
+  .pipe-tag.orange { color: var(--orange); background: rgba(240,148,77,0.08); border-color: rgba(240,148,77,0.2); }
+  .pipe-arrow {
+    display: flex; align-items: center;
+    padding: 0 10px;
+    color: var(--muted);
+    font-size: 16px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Family grid ── */
+  .family-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .family-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .family-emoji { font-size: 20px; margin-top: 1px; }
+  .family-name { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-bottom: 3px; }
+  .family-desc { font-size: 12px; color: var(--muted); line-height: 1.45; margin-bottom: 6px; }
+  .family-examples { font-size: 11px; color: #4a5470; font-style: italic; line-height: 1.4; }
+
+  /* ── Schema box ── */
+  .schema-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .schema-header {
+    background: var(--surface2);
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .schema-title { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+  .schema-body {
+    padding: 0;
+  }
+  .schema-row {
+    display: grid;
+    grid-template-columns: 200px 80px 1fr;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+  }
+  .schema-row:last-child { border-bottom: none; }
+  .schema-field { font-family: var(--mono); font-size: 11.5px; color: var(--accent); padding: 10px 18px; border-right: 1px solid var(--border); white-space: nowrap; }
+  .schema-type  { font-family: var(--mono); font-size: 10px; color: var(--accent2); padding: 10px 14px; border-right: 1px solid var(--border); white-space: nowrap; align-self: center; }
+  .schema-desc  { font-size: 12px; color: var(--muted); padding: 10px 16px; line-height: 1.4; }
+  .schema-row.important .schema-field { color: var(--green); }
+  .schema-row.new .schema-field { color: var(--yellow); }
+
+  /* ── Compare flow ── */
+  .compare-flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    gap: 0;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .cf-col { padding: 20px 18px; }
+  .cf-sep { width: 1px; background: var(--border); align-self: stretch; }
+  .cf-arrow { padding: 0 14px; color: var(--muted); font-size: 20px; text-align: center; }
+  .cf-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; }
+  .cf-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+  .cf-body  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── Priority table ── */
+  .priority-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .priority-row {
+    display: grid;
+    grid-template-columns: 32px 180px 1fr auto;
+    align-items: center;
+    background: var(--surface);
+    gap: 0;
+    padding: 14px 18px;
+    gap: 16px;
+  }
+  .priority-num {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    width: 28px;
+    height: 28px;
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .priority-num.purple { color: var(--accent2); background: rgba(124,92,244,0.1); border-color: rgba(124,92,244,0.2); }
+  .priority-num.orange { color: var(--orange); background: rgba(240,148,77,0.1); border-color: rgba(240,148,77,0.2); }
+  .priority-title { font-size: 13px; font-weight: 600; color: #fff; }
+  .priority-desc  { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+  .priority-effort { font-family: var(--mono); font-size: 10px; white-space: nowrap; }
+
+  @media (max-width: 720px) {
+    .pipeline { flex-direction: column; }
+    .pipe-arrow { display: none; }
+    .pipe-step:first-child, .pipe-step:last-child { border-radius: 10px; }
+    .compare-flow { grid-template-columns: 1fr; }
+    .cf-sep { display: none; }
+    .schema-row { grid-template-columns: 1fr; }
+    .schema-field, .schema-type { border-right: none; border-bottom: 1px solid var(--border); }
+    .priority-row { grid-template-columns: 32px 1fr; }
+    .priority-effort { display: none; }
+    .family-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════ HERO ════ -->
+<div class="hero">
+  <div class="hero-eyebrow">Projeto Jarvis · Arquitetura & Plano</div>
+  <h1>Jarvis v7</h1>
+  <p class="hero-sub">Timeline revista: construção incremental camada a camada, do modelo base até ao hub desktop, com datas específicas e próximo passo sempre visível.</p>
+  <div class="hero-meta">
+    <span class="badge"><span class="dot"></span> Hardware validado</span>
+    <span class="badge"><span class="dot yellow"></span> Deadline 9 agosto 2026</span>
+    <span class="badge"><span class="dot purple"></span> Stack revista junho 2026</span>
+    <span class="version-diff">↑ v7 — Timeline incremental revista</span>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ════ DIFERENÇAS V4 → V5 ════ -->
+<section>
+  <div class="section-label">O que mudou</div>
+  <h2>O que esta versão corrige e atualiza</h2>
+  <p class="section-intro">A v5 não adiciona funcionalidades novas — revê o estado da arte de cada componente da stack, corrige imprecisões técnicas da v4, e atualiza escolhas de modelos e ferramentas com base nos lançamentos de 2025-2026.</p>
+
+  <div class="features">
+    <div class="card">
+      <div class="card-header"><div class="icon purple">🧠</div><h3>Modelos atualizados <span class="new-badge">v5</span></h3></div>
+      <p><code>qwen2.5:7b</code> substituído por <code>qwen3.5:9b</code> (6.6 GB, 256K contexto, multimodal texto+imagem). A família Qwen2.5 está supersedida pela Qwen3/Qwen3.5 em todos os benchmarks.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon green">🔢</div><h3>Embeddings qwen3 <span class="new-badge">v5</span></h3></div>
+      <p><code>nomic-embed-text</code> substituído por <code>qwen3-embedding:0.6b</code> via Ollama — modelo dedicado de embedding, #1 MTEB multilingual (jun 2025), suporta código e texto, disponível com <code>ollama pull qwen3-embedding</code>.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon yellow">🔁</div><h3>Reranker adicionado <span class="new-badge">v5</span></h3></div>
+      <p>Pipeline RAG de 2 etapas: embedding (recall) + <code>qwen3-reranker:0.6b</code> (precision). O reranker refina os top-20 candidatos para top-5 com cross-encoder — melhora a qualidade do contexto sem aumentar a latência percetível.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon blue">🖥️</div><h3>Wails v2 vs v3 esclarecido <span class="new-badge">v5</span></h3></div>
+      <p>Wails v3 ainda em ALPHA (v3.0.0-alpha.55+, junho 2026). Para o deadline de agosto, usar Wails <strong>v2</strong> (estável, v2.12.0). Migrar para v3 depois — a API é compatível e a migração é incremental.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon red">⚡</div><h3>Tool calling format corrigido <span class="new-badge">v5</span></h3></div>
+      <p>A v4 mostrava um formato simplificado de tool call. Corrigido para o formato OpenAI-compatible real que o Ollama usa: <code>tool_calls: [{function: {name, arguments}}]</code> — importante para a implementação do <code>tool_executor.py</code>.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon orange">🗄️</div><h3>ChromaDB vs LanceDB esclarecido <span class="new-badge">v5</span></h3></div>
+      <p>ChromaDB mantém-se como escolha correta para este caso (single-user, &lt;1M vetores, Python-first). LanceDB seria melhor para &gt;1M vetores ou hybrid search nativo. A decisão está documentada com critérios claros.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════ ARQUITETURA ════ -->
+<section>
+  <div class="section-label">Visão geral</div>
+  <h2>Arquitetura — o que há dentro de cada camada</h2>
+  <p class="section-intro">A estrutura de três camadas mantém-se da v2. A v3 expande o que o FastAPI faz internamente — tool calling, modo de contexto, router de modelos — tornando cada camada muito mais capaz.</p>
+
+  <div class="arch-grid">
+    <div class="arch-cell span3" style="background:var(--surface2);border-bottom:1px solid var(--border);">
+      <div class="arch-label">Camada de acesso</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;">
+        <div><div class="arch-title" style="font-size:13px;">App Desktop (Go + Wails v2 + Svelte)</div><div class="arch-desc">Hub principal: chat, modelos, memória, automações — Wails v3 ainda em alpha</div></div>
+        <div style="color:var(--border);font-size:20px;align-self:center;">·</div>
+        <div><div class="arch-title" style="font-size:13px;">Bot Discord</div><div class="arch-desc">Acesso móvel completo</div></div>
+        <div style="color:var(--border);font-size:20px;align-self:center;">·</div>
+        <div><div class="arch-title" style="font-size:13px;">Continue.dev / Cursor</div><div class="arch-desc">Via endpoint OpenAI-compatible</div></div>
+        <div style="color:var(--border);font-size:20px;align-self:center;">·</div>
+        <div><div class="arch-title" style="font-size:13px;">Webhooks externos</div><div class="arch-desc">Qualquer evento que chame o FastAPI</div></div>
+      </div>
+    </div>
+
+    <div class="arch-cell span3" style="border-bottom:1px solid var(--border);">
+      <div class="arch-label purple">FastAPI — o cérebro central (expandido na v3)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:8px;">
+        <div><div class="arch-title" style="font-size:12px;">Router de Modelos</div><div class="arch-desc">Classifica intenção e escolhe o modelo Ollama correto</div></div>
+        <div><div class="arch-title" style="font-size:12px;">Gestor de Modos</div><div class="arch-desc">Carrega system prompt + ferramentas ativas conforme o contexto</div></div>
+        <div><div class="arch-title" style="font-size:12px;">Tool Calling</div><div class="arch-desc">Ferramentas registadas que o modelo pode invocar</div></div>
+        <div><div class="arch-title" style="font-size:12px;">RAG Pipeline</div><div class="arch-desc">Recupera contexto relevante do ChromaDB antes de cada resposta</div></div>
+        <div><div class="arch-title" style="font-size:12px;">Simplificador</div><div class="arch-desc">Phi-4 mini expande o prompt antes de ir ao modelo pesado</div></div>
+        <div><div class="arch-title" style="font-size:12px;">Stream Handler</div><div class="arch-desc">Passa stream do Ollama diretamente para o cliente</div></div>
+        <div><div class="arch-title" style="font-size:12px;">Webhook Listener</div><div class="arch-desc">Recebe eventos externos e dispara automações</div></div>
+        <div><div class="arch-title" style="font-size:12px;">OpenAI Adapter</div><div class="arch-desc">Traduz requests no formato OpenAI para o Ollama</div></div>
+      </div>
+    </div>
+
+    <div class="arch-cell">
+      <div class="arch-label green">Inferência local</div>
+      <div class="arch-title">Ollama</div>
+      <div class="arch-desc">Serve os modelos via API local. O FastAPI escolhe qual modelo chamar conforme o modo ativo.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label">Memória vetorial</div>
+      <div class="arch-title">ChromaDB</div>
+      <div class="arch-desc">Três índices separados: notas gerais, repositórios de código, preferências do utilizador.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label yellow">Fallback cloud</div>
+      <div class="arch-title">OpenAI / Anthropic</div>
+      <div class="arch-desc">Usado quando a tarefa requer qualidade máxima ou contexto muito longo para a VRAM.</div>
+    </div>
+
+    <div class="arch-cell">
+      <div class="arch-label">Histórico</div>
+      <div class="arch-title">SQLite</div>
+      <div class="arch-desc">Todas as conversas, com metadados de modo, modelo usado e ferramentas invocadas.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label purple">Base de conhecimento</div>
+      <div class="arch-title">Obsidian</div>
+      <div class="arch-desc">Estruturado por projeto: cada pasta tem status.md, decisions.md e notas livres.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label green">Acesso remoto</div>
+      <div class="arch-title">Tailscale</div>
+      <div class="arch-desc">VPN mesh encriptada. Autenticação ao nível de rede, sem JWT nem gestão de sessões.</div>
+    </div>
+  </div>
+
+  <div class="note-box blue">
+    <div class="note-icon">🔑</div>
+    <div>
+      <div class="note-title blue">O FastAPI é o único ponto de entrada</div>
+      <div class="note-text">A app Go, o bot Discord, o Continue.dev, e os webhooks — todos falam com o FastAPI. Nunca com o Ollama diretamente. Isto garante que toda a lógica (memória, modos, ferramentas) é sempre aplicada independentemente de onde vem o pedido.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════ TIMELINE ════ -->
+<section>
+  <div class="section-label">Execução</div>
+  <h2>Timeline — construção incremental até 9 de agosto</h2>
+  <p class="section-intro">Cada passo adiciona uma camada ao anterior. Nunca se salta uma etapa — cada entrega é funcional por si só e a seguinte cresce em cima dela. Hoje é 27 de junho; o deadline é 9 de agosto — 43 dias.</p>
+
+  <div class="timeline">
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-week">27–29 jun — dias 1–2</div>
+      <div class="tl-title">Ollama + FastAPI base — o modelo responde</div>
+      <div class="tl-body">Passo zero: confirmar que o stack funciona no teu hardware antes de construir qualquer coisa em cima. Instalar Ollama, fazer <code>ollama pull qwen3.5:9b</code> e <code>ollama pull qwen2.5-coder:7b</code>, testar via <code>curl</code> diretamente ao Ollama (<code>localhost:11434</code>). Criar o FastAPI com um único endpoint <code>POST /chat</code> que chama o Ollama e devolve a resposta. Adicionar <code>auth.py</code> com validação de API Key (1 função, ~10 linhas). Injetar <code>preferences.json</code> básico no system prompt. Testar com <code>curl</code> ou Postman. Mais nada — esta fase é propositadamente minimalista.</div>
+      <div class="tl-tasks">
+        <span class="tech-tag">ollama pull</span>
+        <span class="tech-tag">FastAPI /chat</span>
+        <span class="tech-tag">auth.py</span>
+        <span class="tech-tag">preferences.json</span>
+        <span class="tech-tag green">Entrega: curl → FastAPI → modelo responde</span>
+      </div>
+      <div style="margin-top:12px;padding:10px 14px;background:rgba(79,142,247,0.06);border:1px solid rgba(79,142,247,0.15);border-radius:6px;font-size:12px;color:var(--muted);">
+        ➜ <strong style="color:var(--accent);">Próximo (29 jun):</strong> sistema de modos em YAML — o modelo muda de comportamento e de modelo consoante o contexto
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot purple"></div>
+      <div class="tl-week purple">29 jun – 5 jul — dias 3–8</div>
+      <div class="tl-title">Modos YAML + Mode Router + Tailscale + Streaming</div>
+      <div class="tl-body">Criar os primeiros dois modos: <code>modes/chat.yaml</code> (modelo: <code>qwen3.5:9b</code>) e <code>modes/code.yaml</code> (modelo: <code>qwen2.5-coder:7b</code>), cada um com <code>system_prompt</code> base e lista de ferramentas (ainda vazia). Implementar <code>mode_router.py</code> que lê o YAML ativo e aplica a configuração ao pedido — modelo, system prompt, ferramentas. Comando <code>/modo code</code> troca o contexto. Adicionar streaming nativo: Ollama devolve chunks → FastAPI passa diretamente para o cliente com <code>StreamingResponse</code>. Configurar Tailscale para acesso privado sem portas abertas. Resultado: o modelo comporta-se de forma diferente consoante o contexto, e as respostas chegam progressivamente.</div>
+      <div class="tl-tasks">
+        <span class="tech-tag purple">Modos YAML</span>
+        <span class="tech-tag purple">mode_router.py</span>
+        <span class="tech-tag purple">Streaming</span>
+        <span class="tech-tag purple">Tailscale</span>
+        <span class="tech-tag green">Entrega: servidor privado com modos e streaming</span>
+      </div>
+      <div style="margin-top:12px;padding:10px 14px;background:rgba(124,92,244,0.06);border:1px solid rgba(124,92,244,0.15);border-radius:6px;font-size:12px;color:var(--muted);">
+        ➜ <strong style="color:var(--accent2);">Próximo (5 jul):</strong> memória semântica — ChromaDB + embeddings para as respostas usarem as tuas notas e código automaticamente
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-week">5–13 jul — semana 2</div>
+      <div class="tl-title">Memória Semântica — RAG + ChromaDB + Embeddings</div>
+      <div class="tl-body">Instalar <code>qwen3-embedding:0.6b</code> via <code>ollama pull</code>. Integrar ChromaDB embutido no FastAPI (sem servidor separado) com três índices: <code>general</code>, <code>code</code>, <code>web</code>. Implementar <code>rag.py</code>: embeda a query → faz query ao ChromaDB → filtra top-5 por relevância → injeta no system prompt como bloco <code>## Contexto relevante</code>. Configurar watchdog no vault do Obsidian: quando uma nota é editada, reindexada automaticamente. Adicionar <code>qwen3-reranker:0.6b</code> (opcional) para refinar top-20 → top-5 com cross-encoder. Resultado: o modelo lê automaticamente as tuas notas e código antes de responder, sem precisares de colar nada.</div>
+      <div class="tl-tasks">
+        <span class="tech-tag">qwen3-embedding:0.6b</span>
+        <span class="tech-tag">ChromaDB</span>
+        <span class="tech-tag">rag.py</span>
+        <span class="tech-tag">watchdog Obsidian</span>
+        <span class="tech-tag green">Entrega: respostas com contexto das tuas notas e código</span>
+      </div>
+      <div style="margin-top:12px;padding:10px 14px;background:rgba(79,142,247,0.06);border:1px solid rgba(79,142,247,0.15);border-radius:6px;font-size:12px;color:var(--muted);">
+        ➜ <strong style="color:var(--accent);">Próximo (13 jul):</strong> tool calling — o modelo passa de responder para fazer coisas: ler ficheiros, correr código, escrever notas
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot purple"></div>
+      <div class="tl-week purple">13–20 jul — semana 3</div>
+      <div class="tl-title">Tool Calling — o modelo faz coisas</div>
+      <div class="tl-body">Implementar <code>tools/registry.py</code>: dicionário Python com função + schema JSON de cada ferramenta (o schema vai no request ao Ollama). Implementar <code>tool_executor.py</code>: recebe <code>tool_calls</code> na resposta, executa a função Python via o registry, adiciona resultado ao histórico como <code>role: "tool"</code>, re-envia ao modelo — itera até resolução (máx 5 ciclos). Registar as 10 ferramentas: <code>read_file</code>, <code>write_file</code>, <code>run_code</code> (subprocess com timeout 15s), <code>write_note</code>, <code>search_memory</code>, <code>crawl_url</code>, <code>search_web</code>, <code>git_diff</code>, <code>run_tests</code>, <code>send_discord</code>. Ligar ferramentas aos modos YAML — cada modo define quais estão ativas. Resultado: o modelo lê ficheiros, corre código, escreve notas e valida testes sem intervenção.</div>
+      <div class="tl-tasks">
+        <span class="tech-tag purple">tools/registry.py</span>
+        <span class="tech-tag purple">tool_executor.py</span>
+        <span class="tech-tag purple">run_code subprocess</span>
+        <span class="tech-tag purple">10 ferramentas</span>
+        <span class="tech-tag green">Entrega: modelo executa ferramentas com RAG ativo</span>
+      </div>
+      <div style="margin-top:12px;padding:10px 14px;background:rgba(62,207,142,0.06);border:1px solid rgba(62,207,142,0.15);border-radius:6px;font-size:12px;color:var(--muted);">
+        ➜ <strong style="color:var(--green);">Próximo (20 jul):</strong> abrir ao exterior — bot Discord para acesso móvel e endpoint OpenAI-compatible para o editor de código
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-week">20–27 jul — semana 4</div>
+      <div class="tl-title">Bot Discord + OpenAI Adapter + Continue.dev</div>
+      <div class="tl-body">Criar o bot Discord com <code>discord.py</code>: recebe mensagens, suporta comandos <code>/modo</code> e <code>/compare</code>, reactions 👍/👎 que chamam <code>PUT /interactions/{id}/rating</code> no FastAPI (~15 linhas adicionais). Implementar <code>routers/openai_compat.py</code>: endpoint <code>POST /v1/chat/completions</code> que aceita o formato OpenAI exato e traduz internamente para o Ollama — qualquer ferramenta com suporte a "custom OpenAI endpoint" passa a funcionar. Configurar Continue.dev (ou Cursor) com Base URL <code>http://jarvis.tailnet:8000/v1</code>. Resultado: acesso móvel completo via Discord, ratings de respostas disponíveis, e o editor de código usa o Jarvis como backend.</div>
+      <div class="tl-tasks">
+        <span class="tech-tag">discord.py</span>
+        <span class="tech-tag">👍/👎 ratings</span>
+        <span class="tech-tag">OpenAI adapter</span>
+        <span class="tech-tag">Continue.dev</span>
+        <span class="tech-tag green">Entrega: acesso móvel + editor integrado + ratings</span>
+      </div>
+      <div style="margin-top:12px;padding:10px 14px;background:rgba(124,92,244,0.06);border:1px solid rgba(124,92,244,0.15);border-radius:6px;font-size:12px;color:var(--muted);">
+        ➜ <strong style="color:var(--accent2);">Próximo (27 jul):</strong> Prompt Intelligence Engine — classificar pedidos por família, guardar interações, e o sistema começa a aprender com o teu uso
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot green"></div>
+      <div class="tl-week green">27 jul – 2 ago — semana 5</div>
+      <div class="tl-title">Prompt Intelligence Engine — routing + interaction store + meta-prompts</div>
+      <div class="tl-body">Implementar <code>interaction_store.py</code>: nova tabela <code>interactions</code> no SQLite existente — grava cada par (prompt, resposta, família, modelo, rating, latência) desde o primeiro dia. Implementar <code>prompt_router.py</code>: classifica cada mensagem por embedding similarity nas 4 famílias iniciais (<code>code_debug</code>, <code>code_generate</code>, <code>research</code>, <code>quick_chat</code>) sem LLM call extra (&lt;30ms). Implementar os 3 nós do <code>meta_prompt.py</code> com <code>phi4-mini</code>: RAG Check, Clarification Check, Prompt Clarity — correm antes de cada resposta principal. Expandir <code>optimizer.py</code> para usar as rated interactions reais por família (OPRO-style). Resultado: o Jarvis acumula dados reais de uso, classifica pedidos automaticamente, e começa a adaptar os prompts ao teu feedback.</div>
+      <div class="tl-tasks">
+        <span class="tech-tag green">interaction_store.py</span>
+        <span class="tech-tag green">prompt_router.py</span>
+        <span class="tech-tag green">meta_prompt.py (3 nós)</span>
+        <span class="tech-tag green">optimizer.py expandido</span>
+        <span class="tech-tag green">Entrega: sistema aprende com o teu uso</span>
+      </div>
+      <div style="margin-top:12px;padding:10px 14px;background:rgba(62,207,142,0.06);border:1px solid rgba(62,207,142,0.15);border-radius:6px;font-size:12px;color:var(--muted);">
+        ➜ <strong style="color:var(--green);">Próximo (2 ago):</strong> App Desktop Hub — painel de controlo completo em Go + Wails v2 + Svelte, última peça antes do deadline
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot" style="background:var(--yellow);box-shadow:0 0 8px rgba(245,200,66,0.5);border-color:var(--bg);"></div>
+      <div class="tl-week" style="color:var(--yellow);">2–9 ago — semana 6 · 🎯 deadline</div>
+      <div class="tl-title">App Desktop Hub — painel de controlo completo</div>
+      <div class="tl-body">Construir o cliente principal em Go + Wails <strong>v2</strong> (estável, v2.12.0) + Svelte. Quatro abas: <strong>Chat</strong> (seletor de modo, histórico, streaming), <strong>Modelos</strong> (interface ao Ollama via FastAPI: pull, swap, status de VRAM), <strong>Memória</strong> (visualização e pesquisa manual do ChromaDB), <strong>Automações</strong> (log de webhooks e ferramentas invocadas). Integrar com o FastAPI via Tailscale. Todas as peças anteriores ficam acessíveis a partir de uma única interface. Resultado: o sistema está completo — deadline cumprido.</div>
+      <div class="tl-tasks">
+        <span class="tech-tag yellow">Go + Wails v2</span>
+        <span class="tech-tag yellow">Svelte</span>
+        <span class="tech-tag yellow">4 abas</span>
+        <span class="tech-tag yellow">Tailscale integrado</span>
+        <span class="tech-tag green">🎯 Entrega: sistema completo — deadline cumprido</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════ CASOS DE USO ════ -->
+<section>
+  <div class="section-label">Expansão v3</div>
+  <h2>Casos de uso — o que acontece de facto</h2>
+  <p class="section-intro">Para cada área de utilização: o fluxo completo desde a tua mensagem até à ação, o que é injetado no contexto, e que ferramentas o modelo pode invocar.</p>
+
+  <!-- USE CASE 1: PROJETOS -->
+  <div class="usecase-block">
+    <div class="usecase-header">
+      <div class="usecase-icon">📦</div>
+      <div>
+        <div class="usecase-title">Projetos — gestão e contexto</div>
+        <div class="usecase-subtitle">modo: project · modelo: qwen3:8b · contexto: vault obsidian</div>
+      </div>
+    </div>
+    <div class="usecase-body">
+      <div class="usecase-flow">
+        <div class="flow-step">
+          <div class="flow-step-num">01</div>
+          <div class="flow-step-label">Ativas projeto</div>
+          <div>"estou no projeto X"</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">02</div>
+          <div class="flow-step-label">FastAPI carrega</div>
+          <div>status.md, decisions.md, notas recentes do vault</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">03</div>
+          <div class="flow-step-label">RAG injeta</div>
+          <div>chunks relevantes via embeddings</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">04</div>
+          <div class="flow-step-label">Modelo responde</div>
+          <div>com contexto completo do projeto</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">05</div>
+          <div class="flow-step-label">Opcional: escreve</div>
+          <div>cria nota, atualiza status, regista decisão</div>
+        </div>
+      </div>
+      <div class="usecase-details">
+        <div class="detail-box">
+          <div class="detail-box-label blue">O que o FastAPI injeta automaticamente</div>
+          <ul>
+            <li>Conteúdo do <code>status.md</code> — o que está feito, a fazer, bloqueado</li>
+            <li>Conteúdo do <code>decisions.md</code> — historial de decisões técnicas</li>
+            <li>Últimas notas modificadas na pasta do projeto (via ChromaDB)</li>
+            <li>Preferências do utilizador relevantes para o tipo de projeto</li>
+            <li>Ficheiros do repositório associado, se existir</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label green">Ferramentas disponíveis neste modo</div>
+          <ul>
+            <li><code>write_note(path, content)</code> — cria ou atualiza nota no Obsidian</li>
+            <li><code>update_status(project, field, value)</code> — altera status.md</li>
+            <li><code>add_decision(project, decision)</code> — regista em decisions.md</li>
+            <li><code>list_project_files(project)</code> — lista ficheiros do repo associado</li>
+            <li><code>search_memory(query)</code> — busca semântica no vault</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label purple">Estrutura do Obsidian por projeto</div>
+          <ul>
+            <li><code>Projetos/nome-projeto/status.md</code> — estado atual</li>
+            <li><code>Projetos/nome-projeto/decisions.md</code> — registo de decisões</li>
+            <li><code>Projetos/nome-projeto/notas/</code> — notas livres indexadas</li>
+            <li><code>Projetos/nome-projeto/repo-path.txt</code> — caminho para o repositório</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label yellow">O que as pessoas normalmente usam</div>
+          <ul>
+            <li>Linear / GitHub Issues para rastrear tarefas</li>
+            <li>Notion para documentação de projeto</li>
+            <li>Confluence para decisões técnicas</li>
+            <li>O Jarvis substitui tudo isto com o Obsidian + memória semântica local</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USE CASE 2: AUTOMAÇÕES -->
+  <div class="usecase-block">
+    <div class="usecase-header">
+      <div class="usecase-icon">⚙️</div>
+      <div>
+        <div class="usecase-title">Automações — eventos que disparam ações</div>
+        <div class="usecase-subtitle">modo: automation · modelo: qwen3.5:9b · trigger: webhook ou schedule</div>
+      </div>
+    </div>
+    <div class="usecase-body">
+      <div class="usecase-flow">
+        <div class="flow-step">
+          <div class="flow-step-num">01</div>
+          <div class="flow-step-label">Evento dispara</div>
+          <div>commit, ficheiro novo, hora, URL adicionado</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">02</div>
+          <div class="flow-step-label">Webhook chama FastAPI</div>
+          <div>com payload do evento</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">03</div>
+          <div class="flow-step-label">Modelo analisa</div>
+          <div>decide que ferramentas invocar</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">04</div>
+          <div class="flow-step-label">Ferramentas executam</div>
+          <div>indexa, notifica, escreve, executa</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">05</div>
+          <div class="flow-step-label">Resultado</div>
+          <div>Discord, nota no Obsidian, ou silencioso</div>
+        </div>
+      </div>
+      <div class="usecase-details">
+        <div class="detail-box">
+          <div class="detail-box-label blue">Exemplos de automações concretas</div>
+          <ul>
+            <li>Commit no GitHub → FastAPI recebe webhook → modelo faz code review → envia resumo para Discord</li>
+            <li>URL adicionado ao <code>to-index.md</code> → Crawl4AI extrai → ChromaDB indexa automaticamente</li>
+            <li>Log de script de madrugada → modelo analisa → alerta Discord se houver erros</li>
+            <li>Mudança em pasta de projeto → FastAPI notifica → modelo resume o que mudou</li>
+            <li>Diariamente às 9h → modelo lê status de todos os projetos → gera sumário do dia</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label green">O que as pessoas normalmente usam</div>
+          <ul>
+            <li>n8n (self-hosted) — workflows visuais, muito popular</li>
+            <li>Make.com / Zapier — cloud, pago</li>
+            <li>GitHub Actions — apenas para pipelines de código</li>
+            <li>Home Assistant — para automações de casa</li>
+            <li>O Jarvis pode coexistir com n8n: o n8n chama o FastAPI como passo de AI num workflow maior</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label purple">Ferramentas disponíveis neste modo</div>
+          <ul>
+            <li><code>send_discord(channel, message)</code> — envia notificação</li>
+            <li><code>crawl_url(url)</code> — extrai e indexa página</li>
+            <li><code>run_command(cmd, timeout)</code> — executa comando shell controlado</li>
+            <li><code>http_request(method, url, body)</code> — chama APIs externas</li>
+            <li><code>write_note(path, content)</code> — regista resultado</li>
+            <li><code>schedule_task(cron, task)</code> — agenda tarefa futura</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label yellow">Como o modelo decide o que fazer</div>
+          <ul>
+            <li>O FastAPI envia o evento + lista de ferramentas disponíveis ao modelo</li>
+            <li>O modelo responde com JSON estruturado: <code>{"tool": "send_discord", "args": {...}}</code></li>
+            <li>O FastAPI executa, captura o resultado, e pode enviar de volta ao modelo para iteração</li>
+            <li>Isto é tool calling — o modelo não executa nada, só declara intenção</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USE CASE 3: REPOSITÓRIOS -->
+  <div class="usecase-block">
+    <div class="usecase-header">
+      <div class="usecase-icon">🗃️</div>
+      <div>
+        <div class="usecase-title">Repositórios & Código — contexto real do projeto</div>
+        <div class="usecase-subtitle">modo: code · modelo: qwen2.5-coder:7b · contexto: índice do repo</div>
+      </div>
+    </div>
+    <div class="usecase-body">
+      <div class="usecase-flow">
+        <div class="flow-step">
+          <div class="flow-step-num">01</div>
+          <div class="flow-step-label">Pergunta sobre código</div>
+          <div>ou pedes para corrigir/escrever</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">02</div>
+          <div class="flow-step-label">RAG no índice do repo</div>
+          <div>recupera funções/ficheiros relevantes</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">03</div>
+          <div class="flow-step-label">Modelo responde</div>
+          <div>com código ou análise</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">04</div>
+          <div class="flow-step-label">Execução opcional</div>
+          <div>FastAPI corre código em subprocess</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">05</div>
+          <div class="flow-step-label">Iteração</div>
+          <div>modelo vê output/erro e refina</div>
+        </div>
+      </div>
+      <div class="usecase-details">
+        <div class="detail-box">
+          <div class="detail-box-label blue">Indexação de repositórios</div>
+          <ul>
+            <li>O FastAPI percorre todos os ficheiros de código do repo</li>
+            <li>Extrai funções, classes, e blocos com contexto envolvente</li>
+            <li>Cria embeddings e guarda num índice ChromaDB dedicado ao repo</li>
+            <li>Atualiza automaticamente quando detetam mudanças (via watchdog)</li>
+            <li>Permite perguntar sobre qualquer parte do código mesmo sem abrir o ficheiro</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label green">Ferramentas disponíveis neste modo</div>
+          <ul>
+            <li><code>read_file(path)</code> — lê conteúdo de ficheiro do repo</li>
+            <li><code>write_file(path, content)</code> — escreve ou edita ficheiro</li>
+            <li><code>run_code(lang, code, timeout)</code> — executa em subprocess isolado</li>
+            <li><code>git_status()</code> / <code>git_diff()</code> / <code>git_log(n)</code> — contexto git</li>
+            <li><code>run_tests(pattern)</code> — corre pytest / jest e devolve resultado</li>
+            <li><code>search_code(query)</code> — busca semântica no índice do repo</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label purple">O que as pessoas normalmente usam</div>
+          <ul>
+            <li>Cursor — acesso ao repo inteiro, muito popular</li>
+            <li>Aider — terminal, opera por diff, open-source</li>
+            <li>Continue.dev — plugin VS Code/JetBrains, gratuito</li>
+            <li>GitHub Copilot — integrado no editor mas fecha</li>
+            <li>O Jarvis com OpenAI adapter substitui qualquer um destes como backend</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label yellow">Execução controlada de código</div>
+          <ul>
+            <li>Subprocess com timeout configurável (padrão: 15s)</li>
+            <li>Output capturado integralmente: stdout, stderr, exit code</li>
+            <li>O modelo vê o resultado e pode iterar sem intervenção</li>
+            <li>Sem execução de rede dentro do subprocess (opcional: sandboxing Docker)</li>
+            <li>Sem isto, "correção de código" é só sugestões — com isto, o modelo valida</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USE CASE 4: PESQUISA -->
+  <div class="usecase-block">
+    <div class="usecase-header">
+      <div class="usecase-icon">🔍</div>
+      <div>
+        <div class="usecase-title">Pesquisa & Conhecimento — scraping e indexação</div>
+        <div class="usecase-subtitle">modo: research · modelo: qwen3:8b · contexto: ChromaDB + web</div>
+      </div>
+    </div>
+    <div class="usecase-body">
+      <div class="usecase-flow">
+        <div class="flow-step">
+          <div class="flow-step-num">01</div>
+          <div class="flow-step-label">Pergunta ou URL</div>
+          <div>"como funciona X" ou "indexa este site"</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">02</div>
+          <div class="flow-step-label">RAG no ChromaDB</div>
+          <div>procura se já está indexado</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">03</div>
+          <div class="flow-step-label">Se não: Crawl4AI</div>
+          <div>extrai em Markdown, indexa</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">04</div>
+          <div class="flow-step-label">Opcionalmente: SearXNG</div>
+          <div>pesquisa privada para contexto adicional</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-step-num">05</div>
+          <div class="flow-step-label">Modelo sintetiza</div>
+          <div>resposta baseada no conteúdo real</div>
+        </div>
+      </div>
+      <div class="usecase-details">
+        <div class="detail-box">
+          <div class="detail-box-label blue">Ferramentas disponíveis neste modo</div>
+          <ul>
+            <li><code>crawl_url(url, depth)</code> — Crawl4AI extrai em Markdown</li>
+            <li><code>search_web(query)</code> — SearXNG devolve resultados privados</li>
+            <li><code>search_memory(query, index)</code> — busca semântica no ChromaDB</li>
+            <li><code>index_content(content, source)</code> — guarda em ChromaDB</li>
+            <li><code>write_note(path, content)</code> — salva resumo no Obsidian</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label green">Indexação automática via Obsidian</div>
+          <ul>
+            <li>Pasta <code>Para-Indexar/</code> no vault monitorizada pelo FastAPI</li>
+            <li>Qualquer URL ou texto colocado lá é indexado automaticamente</li>
+            <li>Ficheiro movido para <code>Indexado/</code> com data e resumo gerado</li>
+            <li>Não precisas de pedir manualmente — só adicionas à pasta</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════ CAMADAS DE MEMÓRIA ════ -->
+<section>
+  <div class="section-label">Expansão v3</div>
+  <h2>Três camadas de memória <span class="new-badge">novo</span></h2>
+  <p class="section-intro">Não é só "ChromaDB para tudo". Cada camada tem um propósito diferente, é injetada em momentos diferentes, e usa tecnologia diferente. A combinação das três é o que torna o Jarvis genuinamente contextual.</p>
+
+  <div class="memory-layers">
+    <div class="mem-layer">
+      <div class="mem-layer-name">
+        <div class="mem-layer-label" style="color:var(--accent)">Camada 1</div>
+        <div class="mem-layer-title">Sessão Atual</div>
+      </div>
+      <div class="mem-layer-body">
+        <p><strong style="color:#fff">O quê:</strong> o historial da conversa atual — as mensagens trocadas desde que abriste a sessão. É o "contexto imediato" que o modelo usa para manter coerência dentro de uma troca.</p>
+        <p><strong style="color:#fff">Quando é injetada:</strong> sempre, em cada pedido. É enviada como o array <code>messages</code> ao Ollama.</p>
+        <p><strong style="color:#fff">Limite:</strong> definido pela janela de contexto do modelo (qwen3.5:9b tem <strong>256K tokens</strong> — muito mais que o anterior). O FastAPI trunca as mensagens mais antigas quando o limite se aproxima, mantendo sempre as primeiras (instruções) e as últimas (contexto recente).</p>
+      </div>
+      <div class="mem-layer-tech">
+        <span class="tech-tag">SQLite</span>
+      </div>
+    </div>
+    <div class="mem-layer">
+      <div class="mem-layer-name">
+        <div class="mem-layer-label" style="color:var(--accent2)">Camada 2</div>
+        <div class="mem-layer-title">Memória Semântica</div>
+      </div>
+      <div class="mem-layer-body">
+        <p><strong style="color:#fff">O quê:</strong> o teu conhecimento acumulado — notas do Obsidian, documentação indexada, código dos repositórios, páginas que mandaste crawlear. É a "biblioteca pessoal" do Jarvis.</p>
+        <p><strong style="color:#fff">Quando é injetada:</strong> via RAG, por relevância. O FastAPI converte o teu prompt em embedding, procura os chunks mais próximos no ChromaDB, e injeta os N mais relevantes no context antes de enviar ao modelo. A maioria dos chunks não é injetada — só o que é semanticamente próximo da pergunta atual.</p>
+        <p><strong style="color:#fff">Três sub-índices:</strong> <code>general</code> (notas e docs), <code>code</code> (repositórios), <code>web</code> (páginas indexadas via Crawl4AI).</p>
+      </div>
+      <div class="mem-layer-tech">
+        <span class="tech-tag purple">ChromaDB</span>
+        <span class="tech-tag purple">Obsidian</span>
+      </div>
+    </div>
+    <div class="mem-layer" style="border-bottom:none;">
+      <div class="mem-layer-name">
+        <div class="mem-layer-label" style="color:var(--green)">Camada 3</div>
+        <div class="mem-layer-title">Preferências <span class="new-badge">novo</span></div>
+      </div>
+      <div class="mem-layer-body">
+        <p><strong style="color:#fff">O quê:</strong> factos estáveis sobre ti — linguagens que preferes, estilo de código, ferramentas que usas, convenções dos teus projetos, como gostas de receber respostas. É o que faz o Jarvis não te perguntar as mesmas coisas duas vezes.</p>
+        <p><strong style="color:#fff">Quando é injetada:</strong> sempre, como parte do system prompt base. Não é RAG — é sempre incluída integralmente porque é curta e sempre relevante.</p>
+        <p><strong style="color:#fff">Como se atualiza:</strong> manualmente via comando (<code>/remember isto</code>) ou o modelo sugere adicionar quando infere algo novo — "notei que usas sempre TypeScript, posso guardar isto?". Guardado em <code>preferences.json</code> lido pelo FastAPI no arranque.</p>
+      </div>
+      <div class="mem-layer-tech">
+        <span class="tech-tag green">JSON local</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════ FERRAMENTAS REGISTADAS ════ -->
+<section>
+  <div class="section-label">Expansão v3</div>
+  <h2>Ferramentas registadas <span class="new-badge">novo</span></h2>
+  <p class="section-intro">A diferença entre um chatbot e um assistente que faz coisas. Cada ferramenta é uma função Python no FastAPI que o modelo pode "invocar" ao responder — o modelo declara intenção, o FastAPI executa, e devolve o resultado ao modelo para continuar.</p>
+
+  <div class="tool-grid">
+    <div class="tool-card">
+      <div class="tool-emoji">📁</div>
+      <div>
+        <div class="tool-name">read_file / write_file</div>
+        <div class="tool-desc">Lê e escreve ficheiros do sistema de ficheiros local. O modelo pode pedir para ver um ficheiro antes de sugerir edições, e depois escrever diretamente. Caminhos restritos a uma lista de diretórios permitidos.</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-emoji">⚡</div>
+      <div>
+        <div class="tool-name">run_code</div>
+        <div class="tool-desc">Executa Python, Node.js, ou bash num subprocess com timeout. Devolve stdout, stderr, e exit code. O modelo vê o resultado e pode iterar sem intervenção. É o que permite corrigir código com confirmação real.</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-emoji">🔀</div>
+      <div>
+        <div class="tool-name">git_status / git_diff / git_log</div>
+        <div class="tool-desc">Chama comandos git e devolve output. Permite ao modelo entender o que mudou desde o último commit, analisar um diff antes de fazer review, ou resumir a história recente de um repo.</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-emoji">🧪</div>
+      <div>
+        <div class="tool-name">run_tests</div>
+        <div class="tool-desc">Corre pytest (Python) ou jest (Node.js) e devolve os resultados. O modelo pode analisar testes falhados, perceber a causa, e propor correções — completando o ciclo sem saíres do chat.</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-emoji">📝</div>
+      <div>
+        <div class="tool-name">write_note / update_status</div>
+        <div class="tool-desc">Cria ou atualiza notas no Obsidian. O modelo pode propor adicionar uma decisão ao <code>decisions.md</code>, marcar uma tarefa como feita no <code>status.md</code>, ou guardar um resumo de uma conversa.</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-emoji">🌐</div>
+      <div>
+        <div class="tool-name">crawl_url / search_web</div>
+        <div class="tool-desc">Crawl4AI para extrair uma página em Markdown. SearXNG para fazer pesquisa privada. O modelo pode pedir para verificar documentação antes de responder, em vez de confiar só no conhecimento de treino.</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-emoji">🔔</div>
+      <div>
+        <div class="tool-name">send_discord</div>
+        <div class="tool-desc">Envia mensagem para um canal Discord específico. Usado em automações (notificar resultado de um job) ou quando pedes explicitamente para te lembrar de algo mais tarde.</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-emoji">🔍</div>
+      <div>
+        <div class="tool-name">search_memory</div>
+        <div class="tool-desc">Busca semântica no ChromaDB — o modelo pode invocar explicitamente quando sente que existe informação relevante mas não foi injetada automaticamente pelo RAG. Especifica o sub-índice: general, code, ou web.</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-emoji">🌍</div>
+      <div>
+        <div class="tool-name">http_request</div>
+        <div class="tool-desc">Faz pedidos HTTP a APIs externas com whitelist de domínios. Permite integrar com APIs de trabalho, verificar um endpoint, ou usar webhooks de saída. Mais flexível que ferramentas específicas.</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-emoji">📊</div>
+      <div>
+        <div class="tool-name">read_logs</div>
+        <div class="tool-desc">Lê os últimos N linhas de um ficheiro de log. Usado em automações de monitorização — o modelo analisa logs de aplicações, scripts ou do próprio Jarvis, e reporta anomalias.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note-box purple" style="margin-top:20px;">
+    <div class="note-icon">🧩</div>
+    <div>
+      <div class="note-title purple">Como o tool calling funciona na prática — formato correto</div>
+      <div class="note-text">O FastAPI envia ao modelo a lista de ferramentas disponíveis (nome, descrição, parâmetros) junto com o prompt. O Ollama usa o <strong>formato OpenAI-compatible</strong> — importante para a implementação do <code>tool_executor.py</code>:<br><br>
+      <strong>Resposta do modelo com tool call:</strong><br>
+      <code>{"tool_calls": [{"function": {"name": "run_tests", "arguments": "{\"pattern\": \"test_auth*\"}"}}]}</code><br><br>
+      <strong>Depois de executar, o resultado vai como:</strong><br>
+      <code>{"role": "tool", "tool_call_id": "...", "content": "3 passed, 1 failed..."}</code><br><br>
+      Este ciclo pode iterar várias vezes antes da resposta final. Nota: <code>arguments</code> é uma <em>string JSON</em>, não um objeto — fazer <code>json.loads(args)</code> antes de usar.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════ MODOS / PERSONAS ════ -->
+<section>
+  <div class="section-label">Expansão v3</div>
+  <h2>Modos — contexto automático conforme a tarefa <span class="new-badge">novo</span></h2>
+  <p class="section-intro">Cada modo é um perfil de execução: define o modelo a usar, o system prompt base, as ferramentas ativas, e o contexto a injetar automaticamente. Mudas de modo com um comando ou o FastAPI deteta pela intenção do prompt.</p>
+
+  <div class="modes-grid">
+    <div class="mode-card">
+      <div class="mode-emoji">💬</div>
+      <div class="mode-name">Chat Geral</div>
+      <div class="mode-model">qwen3.5:9b</div>
+      <div class="mode-desc">Conversação livre. Ferramentas mínimas. 256K de contexto, multimodal (aceita imagens). Substitui qwen2.5:7b — melhor qualidade, mesmo perfil de VRAM.</div>
+    </div>
+    <div class="mode-card">
+      <div class="mode-emoji">💻</div>
+      <div class="mode-name">Código</div>
+      <div class="mode-model">qwen2.5-coder:7b</div>
+      <div class="mode-desc">System prompt focado em código. Ferramentas de ficheiros, git, execução, e testes ativas. RAG no índice de código do projeto ativo.</div>
+    </div>
+    <div class="mode-card">
+      <div class="mode-emoji">📦</div>
+      <div class="mode-name">Projeto</div>
+      <div class="mode-model">qwen3:8b</div>
+      <div class="mode-desc">Carrega contexto do projeto ativo (status, decisions). Ferramentas de escrita no Obsidian ativas. Ideal para planeamento e decisões.</div>
+    </div>
+    <div class="mode-card">
+      <div class="mode-emoji">🧠</div>
+      <div class="mode-name">Raciocínio</div>
+      <div class="mode-model">qwen3:8b</div>
+      <div class="mode-desc">Análise profunda, matemática, lógica. Suporta <strong>thinking mode</strong> nativo (CoT visível com <code>/think</code>). Sem ferramentas por padrão — foco total na análise.</div>
+    </div>
+    <div class="mode-card">
+      <div class="mode-emoji">🔍</div>
+      <div class="mode-name">Pesquisa</div>
+      <div class="mode-model">qwen3:8b</div>
+      <div class="mode-desc">Crawl4AI e SearXNG ativos. RAG no índice web. O modelo verifica fontes externas antes de responder sobre factos.</div>
+    </div>
+    <div class="mode-card">
+      <div class="mode-emoji">⚙️</div>
+      <div class="mode-name">Automação</div>
+      <div class="mode-model">qwen3.5:9b</div>
+      <div class="mode-desc">Respostas em JSON estruturado. Todas as ferramentas de ação ativas. Otimizado para decisões rápidas em workflows automáticos.</div>
+    </div>
+    <div class="mode-card">
+      <div class="mode-emoji">☁️</div>
+      <div class="mode-name">Cloud (Fallback)</div>
+      <div class="mode-model">Claude / GPT-4o</div>
+      <div class="mode-desc">Ativado manualmente para tarefas que requerem janela de contexto muito longa ou qualidade máxima. O FastAPI redireciona para a API cloud.</div>
+    </div>
+    <div class="mode-card">
+      <div class="mode-emoji">⚡</div>
+      <div class="mode-name">Rápido</div>
+      <div class="mode-model">phi4-mini</div>
+      <div class="mode-desc">Respostas instantâneas para perguntas simples, edições pontuais, ou quando estás no telemóvel e queres velocidade acima de tudo.</div>
+    </div>
+  </div>
+
+  <pre style="margin-top:20px;"><span class="c"># Exemplo: estrutura de um modo em YAML (guardado em modes/code.yaml)</span>
+<span class="k">name</span>: code
+<span class="k">model</span>: qwen2.5-coder:7b  <span class="c"># qwen3-coder só existe em 30B (250GB RAM) — inviável</span>
+<span class="k">system_prompt</span>: <span class="s">"És um assistente de programação especializado..."</span>
+<span class="k">tools_enabled</span>: [read_file, write_file, run_code, git_diff, run_tests, search_memory]
+<span class="k">rag_index</span>: code
+<span class="k">inject_preferences</span>: <span class="s">true</span>
+<span class="k">inject_project_context</span>: <span class="s">true</span>
+<span class="k">stream</span>: <span class="s">true</span>
+
+<span class="c"># Modo chat geral (modes/chat.yaml)</span>
+<span class="k">name</span>: chat
+<span class="k">model</span>: qwen3.5:9b  <span class="c"># 256K contexto, multimodal — substitui qwen2.5:7b</span>
+<span class="k">tools_enabled</span>: [search_memory, search_web]
+<span class="k">rag_index</span>: general
+<span class="k">inject_preferences</span>: <span class="s">true</span>
+<span class="k">stream</span>: <span class="s">true</span></pre>
+</section>
+
+<hr class="divider">
+
+<!-- ════ OPENAI COMPATIBLE ════ -->
+<section>
+  <div class="section-label">Expansão v3</div>
+  <h2>API OpenAI-compatible — abre o Jarvis a todas as ferramentas <span class="new-badge">novo</span></h2>
+  <p class="section-intro">Um endpoint no FastAPI que aceita exactamente o mesmo formato de request que a API da OpenAI. Isto significa que qualquer ferramenta com suporte a "custom OpenAI endpoint" funciona automaticamente com o teu Jarvis, sem alterações.</p>
+
+  <div class="features" style="margin-bottom:20px;">
+    <div class="card">
+      <div class="card-header"><div class="icon blue">🖥️</div><h3>Continue.dev</h3></div>
+      <p>Plugin open-source para VS Code e JetBrains. Com o endpoint do Jarvis configurado, o teu editor de código tem autocompletion e chat com o teu modelo local e o contexto dos teus projetos.</p>
+      <span class="tech-tag">VS Code</span>
+      <span class="tech-tag">JetBrains</span>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon purple">✏️</div><h3>Cursor (modelo custom)</h3></div>
+      <p>O Cursor suporta APIs custom no formato OpenAI. Podes usar o Jarvis como backend, mantendo toda a UI do Cursor mas com os teus modelos locais e a tua memória.</p>
+      <span class="tech-tag">Cursor</span>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon green">🌐</div><h3>OpenWebUI</h3></div>
+      <p>Interface web open-source popular para modelos locais. Ligas ao endpoint do Jarvis e tens uma UI de chat alternativa à app Go, útil para acesso rápido via browser.</p>
+      <span class="tech-tag">OpenWebUI</span>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon yellow">🤖</div><h3>Qualquer script Python/JS</h3></div>
+      <p>Qualquer script que use a biblioteca <code>openai</code> aponta para o teu servidor local. Útil para criar pequenos agentes e scripts de automação que já conheces como escrever.</p>
+      <span class="tech-tag">openai SDK</span>
+    </div>
+  </div>
+
+  <div class="note-box green">
+    <div class="note-icon">🔌</div>
+    <div>
+      <div class="note-title green">Como configurar em qualquer ferramenta</div>
+      <div class="note-text">Base URL: <code>http://jarvis.tailnet:8000/v1</code> · API Key: a tua chave estática · Modelo: o nome que usas no Ollama (ex: <code>qwen2.5-coder:7b</code>). Literalmente estes três campos em qualquer ferramenta compatível. O FastAPI faz a tradução internamente.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════ HARDWARE ════ -->
+<section>
+  <div class="section-label">Hardware</div>
+  <h2>O que o teu hardware suporta</h2>
+
+  <div class="hw-grid">
+    <div class="hw-card">
+      <div class="hw-label">GPU</div>
+      <div class="hw-value">8 GB VRAM</div>
+      <div class="hw-note">Corre qwen3.5:9b (6.6 GB) e qwen2.5-coder:7b com folga. O qwen3:8b fica no limite. O 14B faz offload parcial para RAM e fica lento.</div>
+      <span class="hw-status ok">Bom para modelos 7-8B</span>
+    </div>
+    <div class="hw-card">
+      <div class="hw-label">CPU</div>
+      <div class="hw-value">CPU principal</div>
+      <div class="hw-note">Usado para o FastAPI, ChromaDB, e camadas de offload do modelo 14B. Não é o bottleneck para modelos dentro dos 8 GB.</div>
+      <span class="hw-status ok">Bom para offload</span>
+    </div>
+    <div class="hw-card">
+      <div class="hw-label">RAM</div>
+      <div class="hw-value">16 GB</div>
+      <div class="hw-note">Suficiente para o sistema + offload de camadas. Com um modelo 14B parcialmente na RAM, sobra pouco — fecha aplicações pesadas durante inferência.</div>
+      <span class="hw-status warn">Suficiente, não folga</span>
+    </div>
+    <div class="hw-card">
+      <div class="hw-label">Armazenamento</div>
+      <div class="hw-value">2 TB HDD</div>
+      <div class="hw-note">Espaço para todos os modelos (7B ≈ 4–5 GB, 14B ≈ 8–9 GB). Loading lento — 20–40s no primeiro load, depois em VRAM é rápido.</div>
+      <span class="hw-status warn">Espaço OK · Loading lento</span>
+    </div>
+  </div>
+
+  <h2 style="margin-bottom:8px;">Modelos recomendados por caso de uso</h2>
+  <p class="section-intro">Mapeados para os modos da v3. A coluna VRAM mostra consumo nos 8 GB disponíveis.</p>
+
+  <table class="model-table">
+    <thead>
+      <tr>
+        <th>Modelo</th>
+        <th>Modo principal</th>
+        <th>VRAM (8 GB limite)</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="mname">qwen3.5:9b</span> <span style="font-family:var(--mono);font-size:10px;color:var(--green);">novo</span></td>
+        <td><span class="muse">Chat geral, automações — substitui qwen2.5:7b. 256K contexto, multimodal (texto + imagem), melhor em todos os benchmarks</span></td>
+        <td><div class="vram-bar-wrap"><div class="vram-bar"><div class="vram-bar-fill green" style="width:82%"></div></div><span class="vram-num">~6.6 GB</span></div></td>
+        <td><span class="pill build">ideal</span></td>
+      </tr>
+      <tr>
+        <td><span class="mname">qwen2.5-coder:7b</span></td>
+        <td><span class="muse">Modo código — qwen3-coder só existe em 30B (250GB RAM). Este continua a ser a melhor opção coder nos 8 GB.</span></td>
+        <td><div class="vram-bar-wrap"><div class="vram-bar"><div class="vram-bar-fill green" style="width:59%"></div></div><span class="vram-num">~4.7 GB</span></div></td>
+        <td><span class="pill build">ideal</span></td>
+      </tr>
+      <tr>
+        <td><span class="mname">qwen3:8b</span></td>
+        <td><span class="muse">Modo projeto, raciocínio, pesquisa — melhor reasoning dentro dos 8 GB. Suporta thinking mode (CoT explícito)</span></td>
+        <td><div class="vram-bar-wrap"><div class="vram-bar"><div class="vram-bar-fill green" style="width:65%"></div></div><span class="vram-num">~5.2 GB</span></div></td>
+        <td><span class="pill build">ideal</span></td>
+      </tr>
+      <tr>
+        <td><span class="mname">phi4-mini</span></td>
+        <td><span class="muse">Meta-prompt nodes + modo rápido — muito pequeno, muito rápido. Ideal para os 3 nós de análise antes da resposta principal</span></td>
+        <td><div class="vram-bar-wrap"><div class="vram-bar"><div class="vram-bar-fill green" style="width:31%"></div></div><span class="vram-num">~2.5 GB</span></div></td>
+        <td><span class="pill build">ideal</span></td>
+      </tr>
+      <tr>
+        <td><span class="mname">qwen3-embedding:0.6b</span> <span style="font-family:var(--mono);font-size:10px;color:var(--green);">novo</span></td>
+        <td><span class="muse">Embeddings RAG — substitui nomic-embed-text. #1 MTEB multilingual, suporta código, 32K contexto, instrução-aware</span></td>
+        <td><div class="vram-bar-wrap"><div class="vram-bar"><div class="vram-bar-fill green" style="width:10%"></div></div><span class="vram-num">~0.8 GB</span></div></td>
+        <td><span class="pill build">ideal</span></td>
+      </tr>
+      <tr>
+        <td><span class="mname">qwen3-reranker:0.6b</span> <span style="font-family:var(--mono);font-size:10px;color:var(--green);">novo</span></td>
+        <td><span class="muse">Reranking RAG (etapa 2) — cross-encoder que refina top-20 → top-5. Melhora precisão do contexto recuperado. Carregado sob demanda.</span></td>
+        <td><div class="vram-bar-wrap"><div class="vram-bar"><div class="vram-bar-fill green" style="width:10%"></div></div><span class="vram-num">~0.8 GB</span></div></td>
+        <td><span class="pill build">ideal</span></td>
+      </tr>
+      <tr>
+        <td><span class="mname">qwen3:14b</span> <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">Q4_K_M</span></td>
+        <td><span class="muse">Máxima qualidade local — possível mas lento; faz offload para RAM</span></td>
+        <td><div class="vram-bar-wrap"><div class="vram-bar"><div class="vram-bar-fill yellow" style="width:100%"></div></div><span class="vram-num">~8.2 GB ⚠</span></div></td>
+        <td><span class="pill warn">borderline</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note-box">
+    <div class="note-icon">⚡</div>
+    <div>
+      <div class="note-title yellow">Estratégia v5: qwen3.5 como base + coder + embedding sempre carregados</div>
+      <div class="note-text">Carrega <code>qwen3.5:9b</code> (6.6 GB) para chat/automações e <code>qwen2.5-coder:7b</code> (4.7 GB) para código — não cabem os dois em VRAM ao mesmo tempo, por isso o router faz swap. O <code>qwen3-embedding:0.6b</code> (0.8 GB) fica sempre em VRAM — é leve o suficiente. O <code>qwen3:8b</code> é carregado on-demand para raciocínio e projeto, substituindo o geral temporariamente. Nota: <code>qwen3-coder</code> só existe em 30B (MoE, 3.3B ativos, mas requer 250 GB RAM) — inviável neste hardware.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════ TECNOLOGIAS ════ -->
+<section>
+  <div class="section-label">Stack</div>
+  <h2>Tecnologias — o que usar e porquê</h2>
+
+  <table class="decision-table">
+    <thead>
+      <tr><th>Componente</th><th>Tecnologia</th><th>Ação</th><th>Porquê</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="name">App Hub Desktop</span></td>
+        <td><span class="name">Go + Wails <strong>v2</strong> + Svelte</span></td>
+        <td><span class="pill build">construir</span></td>
+        <td><span class="why">Interface unificada: chat por modos, gestão de modelos, painel de memória, logs de automações. Usar Wails <strong>v2</strong> (estável, v2.12.0 — março 2026). Wails v3 ainda em alpha; migrar pós-deadline quando estabilizar. API Svelte é compatível entre versões.</span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Cérebro Central</span></td>
+        <td><span class="name">Python + FastAPI</span></td>
+        <td><span class="pill build">construir</span></td>
+        <td><span class="why">O único orquestrador. Gere modos, router de modelos, tool calling, RAG pipeline, webhooks, streaming, e o adapter OpenAI-compatible.</span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Inferência local</span></td>
+        <td><span class="name">Ollama</span></td>
+        <td><span class="pill config">configurar</span></td>
+        <td><span class="why">Padrão de facto para inferência local. Gere VRAM, suporta streaming, e tem API simples. O FastAPI nunca fala com nada que não seja o Ollama (ou as APIs cloud como fallback).</span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Memória vetorial</span></td>
+        <td><span class="name">ChromaDB</span></td>
+        <td><span class="pill config">configurar</span></td>
+        <td><span class="why">Corre integrado no processo do FastAPI (sem servidor separado). Três coleções: general, code, web. Escolha correta para este caso: single-user, &lt;1M vetores, Python-first. <em>LanceDB seria melhor se precisasses de &gt;1M vetores, hybrid search nativo, ou multimodal — não é o caso aqui.</em></span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Modelo de embedding</span></td>
+        <td><span class="name">qwen3-embedding:0.6b <span class="new-badge">novo v5</span></span></td>
+        <td><span class="pill config">configurar</span></td>
+        <td><span class="why">Substitui nomic-embed-text. Instalado via Ollama (<code>ollama pull qwen3-embedding</code>). #1 MTEB multilingual em junho 2025, suporta código e texto em português, contexto até 32K tokens, instruction-aware para melhor precisão. O <code>qwen3-reranker:0.6b</code> é opcional como etapa 2 do RAG pipeline.</span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Base de conhecimento</span></td>
+        <td><span class="name">Obsidian</span></td>
+        <td><span class="pill config">configurar</span></td>
+        <td><span class="why">Ficheiros Markdown no disco, estruturados por projeto. O FastAPI lê diretamente — não há sync, não há API, só ficheiros que o modelo conhece.</span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Histórico de sessões</span></td>
+        <td><span class="name">SQLite + aiosqlite</span></td>
+        <td><span class="pill build">construir</span></td>
+        <td><span class="why">Guarda todas as conversas com metadados: modo, modelo usado, ferramentas invocadas, duração. Usar <code>aiosqlite</code> (não sqlite3 síncrono) — o FastAPI corre em async e bloquear o event loop com I/O síncrono causa latência nas respostas.</span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Acesso remoto</span></td>
+        <td><span class="name">Tailscale</span></td>
+        <td><span class="pill config">configurar</span></td>
+        <td><span class="why">VPN mesh encriptada. Sem portas abertas, sem certificados, sem JWT. A autenticação acontece ao nível da rede antes de chegar ao FastAPI.</span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Scraping controlado</span></td>
+        <td><span class="name">Crawl4AI</span></td>
+        <td><span class="pill config">configurar</span></td>
+        <td><span class="why">Transforma qualquer página em Markdown limpo. Chamado pelo FastAPI via ferramenta <code>crawl_url</code>. Resultado indexado automaticamente no ChromaDB.</span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Pesquisa privada</span></td>
+        <td><span class="name">SearXNG</span></td>
+        <td><span class="pill config">configurar</span></td>
+        <td><span class="why">Motor de pesquisa self-hosted, sem tracking. Chamado pela ferramenta <code>search_web</code> no modo de pesquisa. Docker Compose, um comando para instalar.</span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Bot Discord</span></td>
+        <td><span class="name">discord.py</span></td>
+        <td><span class="pill build">construir</span></td>
+        <td><span class="why">~200 linhas. Recebe mensagens do Discord, reencaminha para o FastAPI com o modo adequado, devolve a resposta. Acesso móvel completo sem app dedicada.</span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Preferences store</span></td>
+        <td><span class="name">JSON local</span></td>
+        <td><span class="pill build">construir</span></td>
+        <td><span class="why">Um ficheiro <code>preferences.json</code> com factos sobre o utilizador, sempre injetado no system prompt. Editável manualmente ou via comando <code>/remember</code>.</span></td>
+      </tr>
+      <tr>
+        <td><span class="name">Watchdog de ficheiros</span></td>
+        <td><span class="name">watchdog (Python)</span></td>
+        <td><span class="pill build">construir</span></td>
+        <td><span class="why">Monitoriza pastas do Obsidian e do repo. Quando detecta mudanças, re-indexa no ChromaDB automaticamente. Mantém a memória semântica sempre atual.</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="divider">
+
+<!-- ════ BUILD VS CONFIG ════ -->
+<section>
+  <h2>Resumo: o que constróis vs o que configuras</h2>
+
+  <div class="two-col">
+    <div class="card">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;">✓ Só configurar</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted);">
+        <div>— Ollama (servidor de inferência + modelos)</div>
+        <div>— <strong style="color:var(--text)">qwen3.5:9b, qwen2.5-coder:7b, qwen3:8b, phi4-mini</strong> (ollama pull)</div>
+        <div>— <strong style="color:var(--text)">qwen3-embedding:0.6b</strong> (ollama pull — novo, substitui nomic-embed-text)</div>
+        <div>— ChromaDB (memória vetorial, corre embutido)</div>
+        <div>— Tailscale (acesso remoto seguro)</div>
+        <div>— Crawl4AI (scraping em Markdown)</div>
+        <div>— SearXNG (pesquisa privada, Docker Compose)</div>
+        <div>— Obsidian (estrutura de pastas de projetos)</div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;">⚒ Construir custom</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted);">
+        <div>— FastAPI: router, modos, tool calling, RAG, webhooks, stream, OpenAI adapter</div>
+        <div>— App Hub Desktop (Go + Wails + Svelte)</div>
+        <div>— Bot Discord (Python, ~200 linhas)</div>
+        <div>— Sistema de ferramentas registadas (10 ferramentas)</div>
+        <div>— Watchdog de ficheiros + re-indexação automática</div>
+        <div>— preferences.json + comando /remember</div>
+        <div>— Ficheiros YAML de modos (8 modos)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<hr class="divider">
+
+<!-- ════ NÃO CONSTRUIR ════ -->
+<section>
+  <h2>O que NÃO construir — anti-padrões da arquitetura</h2>
+  <p class="section-intro">O que deves evitar ativamente para não adicionar complexidade sem valor.</p>
+
+  <table class="skip-table">
+    <thead>
+      <tr><th>Ideia tentadora</th><th></th><th>Realidade</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="idea">Dois backends em paralelo</span></td>
+        <td><span class="arrow">→</span></td>
+        <td><span class="why">Fragmenta a memória, o router, e o tool calling. Tudo passa pelo FastAPI — é o único ponto de entrada, sempre.</span></td>
+        <td><span class="pill skip">evitar</span></td>
+      </tr>
+      <tr>
+        <td><span class="idea">JWT e sessões complexas</span></td>
+        <td><span class="arrow">→</span></td>
+        <td><span class="why">Desenhado para milhares de utilizadores. Tu tens um. API Key estática no FastAPI, protegida pelo Tailscale ao nível da rede.</span></td>
+        <td><span class="pill skip">evitar</span></td>
+      </tr>
+      <tr>
+        <td><span class="idea">Agent framework externo (LangChain, etc.)</span></td>
+        <td><span class="arrow">→</span></td>
+        <td><span class="why">Adiciona uma camada de abstração entre ti e o comportamento real. O tool calling do FastAPI em Python puro dá-te controlo total sem magia negra.</span></td>
+        <td><span class="pill skip">evitar</span></td>
+      </tr>
+      <tr>
+        <td><span class="idea">Base de dados vetorial separada com servidor próprio</span></td>
+        <td><span class="arrow">→</span></td>
+        <td><span class="why">ChromaDB corre embutido no processo do FastAPI. Qdrant, Weaviate, Pinecone — todos são sobre-engenharia para uso single-user.</span></td>
+        <td><span class="pill skip">evitar</span></td>
+      </tr>
+      <tr>
+        <td><span class="idea">Treinar ou fazer fine-tune de modelos</span></td>
+        <td><span class="arrow">→</span></td>
+        <td><span class="why">Para o teu caso de uso, memória semântica (RAG) + preferências + modos dão 95% do comportamento personalizado sem nenhum treino. Fine-tune é para empresas com datasets próprios.</span></td>
+        <td><span class="pill skip">evitar</span></td>
+      </tr>
+      <tr>
+        <td><span class="idea">App em Rust com TLS custom</span></td>
+        <td><span class="arrow">→</span></td>
+        <td><span class="why">Tailscale resolve encriptação, autenticação, e acesso remoto de forma elegante. WireGuard nativo, sem portas abertas, sem certificados para gerir.</span></td>
+        <td><span class="pill skip">evitar</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+
+<hr class="divider">
+
+<!-- ════ PROMPTS ADAPTATIVOS ════ -->
+<section>
+  <div class="section-label">Ideia experimental · v4</div>
+  <h2>Meta-Prompt Engine — Prompts que se Adaptam ao Teu Feedback</h2>
+  <p class="section-intro">A ideia: cada pedido que fazes ao Jarvis não dispara apenas um prompt. Dispara uma cadeia de micro-prompts que avaliam contexto, clareza e intenção antes de chegarem ao modelo principal. No fim do dia, o Jarvis analisa os raciocínios e ajusta os próprios prompts com base no teu feedback — como backpropagation, mas em linguagem natural.</p>
+
+  <!-- Estado da arte box -->
+  <div class="note-box blue" style="margin-bottom:28px;">
+    <div class="note-icon">🔬</div>
+    <div>
+      <div class="note-title blue">Estado da arte validado — a tua ideia tem nome</div>
+      <div class="note-text">O que describes é <strong>Automatic Prompt Optimization (APO)</strong> com feedback humano. Existe investigação ativa nisto desde 2023:<br><br>
+      <strong>TextGrad</strong> (Stanford, 2024) — trata feedback do LLM como "gradientes textuais" para otimizar prompts iterativamente, análogo a gradient descent mas em linguagem natural.<br>
+      <strong>OPRO</strong> (Google DeepMind, 2023) — usa um LLM como otimizador: constrói um meta-prompt com o histórico de (prompt, score) anteriores e pede ao modelo uma versão melhor.<br>
+      <strong>ProTeGi</strong> (2023) — gera gradientes textuais a partir de falhas, aplica beam search para explorar variantes.<br>
+      <strong>DSPy</strong> (Stanford, 2024) — compila programas LLM declarativos com teleprompters que otimizam few-shots e instruções automaticamente.<br><br>
+      <em>A tua abordagem é mais pragmática e human-in-the-loop: em vez de métricas automáticas, usas o teu próprio julgamento como sinal de treino. Isto alinha-se com RLHF (Reinforcement Learning from Human Feedback) mas aplicado a prompts, não a pesos.</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- Como funciona -->
+  <h3 style="margin-bottom:16px;font-size:17px;">Como funciona — pipeline de cada pedido</h3>
+
+  <div class="usecase-block" style="margin-bottom:28px;">
+    <div class="usecase-header" style="background:rgba(124,92,244,0.08);">
+      <div class="usecase-icon">🧬</div>
+      <div>
+        <div class="usecase-title">Cadeia de sub-prompts antes da resposta principal</div>
+        <div class="usecase-subtitle">Cada nó é um LLM call independente · resultado guardado para revisão</div>
+      </div>
+    </div>
+    <div class="usecase-body">
+      <div class="usecase-flow" style="flex-wrap:wrap;gap:8px;">
+        <div class="flow-step" style="border-color:rgba(79,142,247,0.3);">
+          <div class="flow-step-num" style="color:var(--accent);">Nó 1</div>
+          <div class="flow-step-label">RAG Check</div>
+          <div>"Tenho contexto suficiente para responder bem a isto?"</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="border-color:rgba(245,200,66,0.3);">
+          <div class="flow-step-num" style="color:var(--yellow);">Nó 2</div>
+          <div class="flow-step-label">Clarification Check</div>
+          <div>"Tenho dúvidas que impedem uma boa resposta?"</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="border-color:rgba(62,207,142,0.3);">
+          <div class="flow-step-num" style="color:var(--green);">Nó 3</div>
+          <div class="flow-step-label">Prompt Clarity</div>
+          <div>"O prompt do utilizador é claro? Reformulá-lo?"</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="border-color:rgba(240,148,77,0.3);">
+          <div class="flow-step-num" style="color:var(--orange);">Main</div>
+          <div class="flow-step-label">Resposta Final</div>
+          <div>Modelo principal com contexto enriquecido</div>
+        </div>
+      </div>
+
+      <div class="usecase-details" style="grid-template-columns:1fr 1fr;">
+
+        <div class="detail-box">
+          <div class="detail-box-label blue">Nó 1 — RAG Check</div>
+          <ul>
+            <li>O modelo avalia se o contexto recuperado pelo ChromaDB é suficiente</li>
+            <li>Se não → faz uma segunda busca com query reformulada</li>
+            <li>Se sim → passa o contexto diretamente</li>
+            <li>Saída: <code>{"rag_ok": true, "extra_context": "..."}</code></li>
+          </ul>
+        </div>
+
+        <div class="detail-box">
+          <div class="detail-box-label yellow">Nó 2 — Clarification Check</div>
+          <ul>
+            <li>O modelo decide se há ambiguidade que afeta a qualidade da resposta</li>
+            <li>Se sim → pausa e pergunta ao utilizador antes de continuar</li>
+            <li>Se não → continua sem interrupção (caso mais comum)</li>
+            <li>Saída: <code>{"needs_clarification": false, "question": null}</code></li>
+          </ul>
+        </div>
+
+        <div class="detail-box">
+          <div class="detail-box-label green">Nó 3 — Prompt Clarity</div>
+          <ul>
+            <li>Avalia se o prompt original é vago ou mal formulado</li>
+            <li>Se sim → reescreve ligeiramente sem mudar a intenção</li>
+            <li>A versão reescrita vai ao modelo principal, não o original</li>
+            <li>Saída: <code>{"rewritten": true, "new_prompt": "..."}</code></li>
+          </ul>
+        </div>
+
+        <div class="detail-box">
+          <div class="detail-box-label purple">O que é guardado por pedido</div>
+          <ul>
+            <li>Prompt original + reescrito (se houver)</li>
+            <li>Output de cada nó com o raciocínio interno</li>
+            <li>Resposta final do modelo principal</li>
+            <li>Timestamp e modo ativo — base para a revisão diária</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Revisão diária -->
+  <h3 style="margin-bottom:16px;font-size:17px;">Revisão diária — a loss function</h3>
+
+  <div class="arch-grid" style="margin-bottom:28px;">
+    <div class="arch-cell span3" style="background:var(--surface2);border-bottom:1px solid var(--border);">
+      <div class="arch-label purple">Fim do dia — análise de 1 a 2 raciocínios</div>
+      <div class="arch-desc" style="margin-top:6px;">O Jarvis escolhe automaticamente 1 ou 2 interações do dia onde os nós tomaram decisões interessantes (ex: reformulou o prompt, pediu clarificação, fez double RAG). Apresenta-as para revisão.</div>
+    </div>
+
+    <div class="arch-cell">
+      <div class="arch-label">Passo 1</div>
+      <div class="arch-title" style="font-size:13px;">Seleção automática</div>
+      <div class="arch-desc">Escolhe interações onde algum nó tomou uma decisão não-trivial. Não todas — só as mais informativas.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label yellow">Passo 2</div>
+      <div class="arch-title" style="font-size:13px;">Apresenta ao utilizador</div>
+      <div class="arch-desc">Mostra o raciocínio de cada nó e pede um sinal simples: 👍 boa decisão / 👎 má decisão / ⊘ ignorar.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label green">Passo 3</div>
+      <div class="arch-title" style="font-size:13px;">Ajuste do prompt</div>
+      <div class="arch-desc">Um LLM analisa o feedback e reescreve o prompt do nó em questão. Guarda ambas as versões com o score associado.</div>
+    </div>
+  </div>
+
+  <!-- O que faz o mecanismo de ajuste -->
+  <div class="note-box purple" style="margin-bottom:28px;">
+    <div class="note-icon">⚙️</div>
+    <div>
+      <div class="note-title purple">Como o ajuste de prompts funciona na prática</div>
+      <div class="note-text">Não há pesos numéricos. Cada nó tem um <strong>histórico de versões do prompt</strong> guardado em <code>prompt_versions.json</code>, organizado por tema (ex: <code>rag_check.code</code>, <code>clarification.projetos</code>). Quando dás 👎 a uma decisão do Nó 2 numa conversa de código, um LLM de revisão analisa: o que correu mal? Reescreve o prompt desse nó <strong>só para o contexto "código"</strong> com base no teu feedback. Na próxima conversa de código, esse nó usa a versão nova. É OPRO aplicado a nível de nó e tema — a "trajetória" de (prompt_v1, feedback, prompt_v2) é o sinal de treino.</div>
+    </div>
+  </div>
+
+  <!-- Comparação honesta -->
+  <h3 style="margin-bottom:16px;font-size:17px;">Avaliação honesta da ideia</h3>
+
+  <div class="features" style="margin-bottom:0;">
+    <div class="card">
+      <div class="card-header"><div class="icon green">✅</div><h3>O que funciona bem</h3></div>
+      <p>O mecanismo dos sub-prompts é validado pela literatura (TextGrad, ProTeGi). Human-in-the-loop é mais robusto do que métricas automáticas para uso pessoal. A granularidade por tema evita que um ajuste num contexto quebre outro. Implementável sem bibliotecas externas — tudo em Python puro com chamadas ao Ollama.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon yellow">⚠️</div><h3>Riscos reais a ter em conta</h3></div>
+      <p>Os 3 nós adicionam latência (3 chamadas extra por pedido). Se o modelo for lento, isto é perceptível. Solução: usar Phi-4 mini nos nós de meta-análise, reservar o modelo pesado para a resposta final. Além disso, prompts ajustados podem degradar com poucos exemplos — precisas de pelo menos 5-10 feedbacks por tema antes de confiar nos ajustes.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon blue">💡</div><h3>Diferença da abordagem académica</h3></div>
+      <p>DSPy e TextGrad usam datasets e métricas automáticas. A tua abordagem usa o teu julgamento real em situações reais — o que é mais difícil de escalar mas muito mais alinhado com o teu caso de uso single-user. Não há ground truth externo: és tu o avaliador, o que é simultaneamente a força e a limitação do sistema.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="icon purple">🗂️</div><h3>Implementar faseado</h3></div>
+      <p>Fase 1: implementa só o Nó 3 (Prompt Clarity) — o mais simples e com retorno imediato. Fase 2: adiciona o RAG Check. Fase 3: adiciona a revisão diária. Fase 4: fecha o loop com ajuste de prompts. Não implementes tudo de uma vez — cada fase deve ser testada durante pelo menos uma semana antes de avançar.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════ ANATOMIA DO FASTAPI ════ -->
+<section>
+  <div class="section-label">Detalhe de implementação · v4</div>
+  <h2>Anatomia do FastAPI — o que há dentro de cada módulo</h2>
+  <p class="section-intro">O FastAPI é o cérebro do Jarvis mas até agora descrevemo-lo como uma caixa negra. Esta secção detalha cada ficheiro, o que faz, e como se liga aos outros — para teres uma ideia mental clara de onde começa e acaba cada responsabilidade antes de começar a separar o código.</p>
+
+  <!-- Estrutura de ficheiros -->
+  <h3 style="margin-bottom:12px;font-size:15px;">Estrutura de ficheiros sugerida</h3>
+  <pre style="margin-bottom:28px;"><span class="c"># jarvis-api/</span>
+├── main.py                     <span class="c"># app, lifespan, middleware, health</span>
+├── auth.py                     <span class="c"># API key validation (1 função)</span>
+├── <span class="k">routers/</span>
+│   ├── chat.py                 <span class="c"># POST /chat  (streaming + normal)</span>
+│   ├── openai_compat.py        <span class="c"># POST /v1/chat/completions (adapter)</span>
+│   ├── webhook.py              <span class="c"># POST /webhook/{source}</span>
+│   ├── memory.py               <span class="c"># GET|POST|DELETE /memory</span>
+│   └── admin.py                <span class="c"># GET /models, GET /modes, GET /status</span>
+├── <span class="k">services/</span>
+│   ├── mode_router.py          <span class="c"># classifica modo e carrega config YAML</span>
+│   ├── rag.py                  <span class="c"># pipeline RAG (ChromaDB)</span>
+│   ├── tool_executor.py        <span class="c"># loop de tool calling</span>
+│   ├── meta_prompt.py          <span class="c"># nós de sub-prompts (v4)</span>
+│   ├── prompt_optimizer.py     <span class="c"># revisão diária + ajuste (v4)</span>
+│   ├── scheduler.py            <span class="c"># revisão diária + APScheduler</span>
+│   ├── <span class="n">prompt_router.py</span>        <span class="c"># ★ NOVO — classifica família por embedding similarity</span>
+│   ├── <span class="n">interaction_store.py</span>    <span class="c"># ★ NOVO — grava pares prompt-resposta no SQLite</span>
+│   └── <span class="n">judge.py</span>               <span class="c"># ★ NOVO — comparação pairwise entre modelos (/compare)</span>
+├── <span class="k">tools/</span>
+│   ├── registry.py             <span class="c"># registo central das ferramentas</span>
+│   ├── filesystem.py           <span class="c"># write_note, list_files, read_file</span>
+│   ├── web.py                  <span class="c"># crawl_url, search_web, http_request</span>
+│   ├── code.py                 <span class="c"># run_code, run_command</span>
+│   └── notifications.py        <span class="c"># send_discord</span>
+├── <span class="k">data/</span>
+│   ├── modes/                  <span class="c"># YAML de cada modo operacional (8 ficheiros)</span>
+│   ├── <span class="n">prompt_families/</span>        <span class="c"># ★ NOVO — YAML por família (code_debug.yaml, research.yaml, ...)</span>
+│   │   ├── code_debug.yaml     <span class="c"># family, model, system_prompt_version, tools_enabled, embedding_examples, rag_index</span>
+│   │   ├── code_generate.yaml</span>
+│   │   ├── research.yaml</span>
+│   │   └── quick_chat.yaml     <span class="c"># começa com 4, expande depois</span>
+│   ├── preferences.json        <span class="c"># factos do utilizador</span>
+│   └── prompt_versions.json    <span class="c"># histórico de versões por família (expandido v5/v6)</span>
+└── <span class="k">models/</span>
+    └── schemas.py              <span class="c"># Pydantic: ChatRequest, ToolCall, etc.</span></pre>
+
+  <!-- Módulos em detalhe -->
+  <h3 style="margin-bottom:16px;font-size:15px;">O que faz cada módulo</h3>
+
+  <div style="display:flex;flex-direction:column;gap:12px;">
+
+    <!-- main.py -->
+    <div class="usecase-block">
+      <div class="usecase-header">
+        <div class="usecase-icon">🏗️</div>
+        <div>
+          <div class="usecase-title"><code style="font-size:14px;color:var(--accent);">main.py</code> — entrada da aplicação</div>
+          <div class="usecase-subtitle">~80 linhas · lifespan, middleware, routers, health</div>
+        </div>
+      </div>
+      <div class="usecase-body">
+        <div class="usecase-details">
+          <div class="detail-box">
+            <div class="detail-box-label blue">Responsabilidades</div>
+            <ul>
+              <li>Inicializa o FastAPI com lifespan context manager</li>
+              <li>No startup: carrega modos YAML, conecta ChromaDB, arranca scheduler</li>
+              <li>No shutdown: fecha conexões limpamente</li>
+              <li>Regista os 5 routers com prefixos</li>
+              <li><code>GET /health</code> → retorna versão, modelos ativos, uptime</li>
+            </ul>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label green">Middleware que corre aqui</div>
+            <ul>
+              <li>CORS (para a app desktop e Continue.dev)</li>
+              <li>Request timing (log de latência por endpoint)</li>
+              <li>Injeção do API Key header no scope do request</li>
+              <li>Nada de JWT, nada de sessões — simplicidade intencional</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- routers/chat.py -->
+    <div class="usecase-block">
+      <div class="usecase-header">
+        <div class="usecase-icon">💬</div>
+        <div>
+          <div class="usecase-title"><code style="font-size:14px;color:var(--accent);">routers/chat.py</code> — o endpoint principal</div>
+          <div class="usecase-subtitle">~150 linhas · streaming, tool calling loop, meta-prompts</div>
+        </div>
+      </div>
+      <div class="usecase-body">
+        <div class="usecase-details">
+          <div class="detail-box">
+            <div class="detail-box-label blue">POST /chat — o que acontece por ordem</div>
+            <ul>
+              <li>Valida API key → determina modo ativo (via mode_router)</li>
+              <li>Corre os 3 sub-prompts de meta-análise (Nó 1, 2, 3)</li>
+              <li>Constrói o payload: system prompt + contexto RAG + preferências + histórico</li>
+              <li>Chama Ollama com stream=True via httpx</li>
+              <li>Se o modelo devolve tool calls → delega para tool_executor</li>
+              <li>Retorna StreamingResponse com Server-Sent Events</li>
+            </ul>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label purple">Estrutura do ChatRequest (Pydantic)</div>
+            <ul>
+              <li><code>message: str</code> — mensagem do utilizador</li>
+              <li><code>mode: str = "auto"</code> — modo explícito ou auto-detect</li>
+              <li><code>history: list[Message]</code> — contexto da sessão</li>
+              <li><code>project: str | None</code> — projeto ativo</li>
+              <li><code>stream: bool = True</code> — streaming ou resposta completa</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- routers/openai_compat.py -->
+    <div class="usecase-block">
+      <div class="usecase-header">
+        <div class="usecase-icon">🔌</div>
+        <div>
+          <div class="usecase-title"><code style="font-size:14px;color:var(--accent);">routers/openai_compat.py</code> — adapter OpenAI</div>
+          <div class="usecase-subtitle">~80 linhas · tradução de schemas, transparência total</div>
+        </div>
+      </div>
+      <div class="usecase-body">
+        <div class="usecase-details">
+          <div class="detail-box">
+            <div class="detail-box-label blue">O que este router faz</div>
+            <ul>
+              <li>Aceita <code>POST /v1/chat/completions</code> no formato exato da OpenAI</li>
+              <li>Traduz <code>{"model": "gpt-4o", "messages": [...]}</code> para <code>ChatRequest</code> interno</li>
+              <li>Mapeia o model string para o modelo Ollama correto (tabela em config)</li>
+              <li>Devolve resposta no schema <code>ChatCompletion</code> da OpenAI</li>
+              <li>Suporta <code>stream: true</code> com chunks no formato SSE da OpenAI</li>
+            </ul>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label green">Clientes que funcionam sem configuração</div>
+            <ul>
+              <li>Continue.dev — ligar ao Jarvis como custom provider</li>
+              <li>Cursor — configurar base URL para o Jarvis</li>
+              <li>Qualquer SDK da OpenAI com <code>base_url</code> custom</li>
+              <li>Open WebUI, LobeChat, ou qualquer interface que aceite endpoints custom</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- services/mode_router.py -->
+    <div class="usecase-block">
+      <div class="usecase-header">
+        <div class="usecase-icon">🎭</div>
+        <div>
+          <div class="usecase-title"><code style="font-size:14px;color:var(--accent);">services/mode_router.py</code> — seleção de modo e modelo</div>
+          <div class="usecase-subtitle">~60 linhas · classifica intenção, carrega YAML, escolhe modelo Ollama</div>
+        </div>
+      </div>
+      <div class="usecase-body">
+        <div class="usecase-details">
+          <div class="detail-box">
+            <div class="detail-box-label blue">Responsabilidades</div>
+            <ul>
+              <li>Se mode="auto" → usa Phi-4 mini para classificar a intenção da mensagem</li>
+              <li>Se mode explícito → usa diretamente</li>
+              <li>Carrega <code>data/modes/{mode}.yaml</code> com: system prompt, modelo, ferramentas ativas, temperatura</li>
+              <li>Devolve um <code>ModeConfig</code> que o router de chat usa para construir o request</li>
+            </ul>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label purple">Estrutura de um YAML de modo</div>
+            <ul>
+              <li><code>model: qwen2.5-coder:7b</code></li>
+              <li><code>system_prompt: "..."</code> — persona e contexto</li>
+              <li><code>tools: [run_code, search_memory]</code> — ferramentas ativas</li>
+              <li><code>temperature: 0.2</code></li>
+              <li><code>rag_index: repos</code> — qual índice do ChromaDB usar</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- services/rag.py -->
+    <div class="usecase-block">
+      <div class="usecase-header">
+        <div class="usecase-icon">🧠</div>
+        <div>
+          <div class="usecase-title"><code style="font-size:14px;color:var(--accent);">services/rag.py</code> — pipeline de memória semântica</div>
+          <div class="usecase-subtitle">~90 linhas · embed, query, rerank, inject</div>
+        </div>
+      </div>
+      <div class="usecase-body">
+        <div class="usecase-details">
+          <div class="detail-box">
+            <div class="detail-box-label blue">Fluxo de RAG por pedido</div>
+            <ul>
+              <li>Embeda a query com <strong>qwen3-embedding:0.6b</strong> via Ollama (substitui nomic-embed-text)</li>
+              <li>Faz query ao índice correto do ChromaDB (notas, repos, ou preferências)</li>
+              <li>Recupera os top-20 chunks com score de similaridade</li>
+              <li>Reranker (<code>qwen3-reranker:0.6b</code>, opcional) refina para top-5 com cross-encoder</li>
+              <li>Filtra chunks com score abaixo do threshold (evita ruído)</li>
+              <li>Formata para injeção no system prompt como bloco <code>## Contexto relevante</code></li>
+            </ul>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label green">Indexação (para além do query)</div>
+            <ul>
+              <li><code>index_note(path, content)</code> — indexa uma nota do Obsidian</li>
+              <li><code>index_file(path, content, repo)</code> — indexa ficheiro de código</li>
+              <li><code>index_url(url, markdown)</code> — indexa página crawlada</li>
+              <li>Chamado pelo watchdog quando detecta mudanças em ficheiros</li>
+              <li>Metadata guardada por chunk: path, timestamp, modo, projeto</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- services/tool_executor.py -->
+    <div class="usecase-block">
+      <div class="usecase-header">
+        <div class="usecase-icon">⚡</div>
+        <div>
+          <div class="usecase-title"><code style="font-size:14px;color:var(--accent);">services/tool_executor.py</code> — loop de tool calling</div>
+          <div class="usecase-subtitle">~100 linhas · executa ferramentas, devolve resultado ao modelo, itera</div>
+        </div>
+      </div>
+      <div class="usecase-body">
+        <div class="usecase-details">
+          <div class="detail-box">
+            <div class="detail-box-label blue">O loop de tool calling</div>
+            <ul>
+              <li>Recebe a resposta do modelo com <code>tool_calls: [...]</code></li>
+              <li>Para cada tool call: valida se a ferramenta está ativa no modo atual</li>
+              <li>Executa via <code>tools/registry.py</code> que mapeia nome → função Python</li>
+              <li>Adiciona resultado ao histórico como <code>role: "tool"</code></li>
+              <li>Re-envia para o modelo — itera até não haver mais tool calls (max 5)</li>
+            </ul>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label yellow">Segurança no executor</div>
+            <ul>
+              <li>Lista de ferramentas permitidas por modo — não há acesso global</li>
+              <li><code>run_code</code> e <code>run_command</code> têm timeout e sandbox de diretório</li>
+              <li>Nenhuma ferramenta tem acesso a rede sem estar explicitamente listada</li>
+              <li>Log de cada tool call com args, resultado, e tempo de execução</li>
+              <li><strong>Atenção:</strong> <code>arguments</code> no formato Ollama é uma string JSON — fazer <code>json.loads()</code> antes de usar</li>
+              <li>FastAPI é async — usar <code>aiosqlite</code> para o histórico, não sqlite3 síncrono</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- services/meta_prompt.py (novo v4) -->
+    <div class="usecase-block" style="border-color:rgba(124,92,244,0.35);">
+      <div class="usecase-header" style="background:rgba(124,92,244,0.08);">
+        <div class="usecase-icon">🧬</div>
+        <div>
+          <div class="usecase-title"><code style="font-size:14px;color:var(--accent2);">services/meta_prompt.py</code> — sub-prompts adaptativos <span class="new-badge">novo v4</span></div>
+          <div class="usecase-subtitle">~120 linhas · 3 nós de análise antes da resposta principal</div>
+        </div>
+      </div>
+      <div class="usecase-body">
+        <div class="usecase-details">
+          <div class="detail-box">
+            <div class="detail-box-label purple">O que corre aqui</div>
+            <ul>
+              <li>Carrega o prompt atual de cada nó de <code>prompt_versions.json</code></li>
+              <li>Corre os 3 nós sequencialmente com Phi-4 mini (rápido, não o modelo pesado)</li>
+              <li>Cada nó retorna JSON estruturado com decisão + raciocínio</li>
+              <li>Guarda o trace completo da interação para revisão diária</li>
+              <li>Retorna o prompt (possivelmente reescrito) e contexto adicional</li>
+            </ul>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label blue">Formato do trace guardado</div>
+            <ul>
+              <li><code>interaction_id</code> — UUID único por pedido</li>
+              <li><code>nodes: [{name, prompt_version, input, output, decision}]</code></li>
+              <li><code>original_prompt / final_prompt</code> — antes e depois</li>
+              <li><code>timestamp / mode / project</code></li>
+              <li>Guardado em <code>data/traces/{date}.jsonl</code> (append, não reescreve)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- services/prompt_optimizer.py (novo v4) -->
+    <div class="usecase-block" style="border-color:rgba(124,92,244,0.35);">
+      <div class="usecase-header" style="background:rgba(124,92,244,0.08);">
+        <div class="usecase-icon">🔁</div>
+        <div>
+          <div class="usecase-title"><code style="font-size:14px;color:var(--accent2);">services/prompt_optimizer.py</code> — revisão e ajuste <span class="new-badge">novo v4</span></div>
+          <div class="usecase-subtitle">~80 linhas · lê feedback, ajusta prompts, guarda histórico de versões</div>
+        </div>
+      </div>
+      <div class="usecase-body">
+        <div class="usecase-details">
+          <div class="detail-box">
+            <div class="detail-box-label purple">Revisão diária (chamada pelo scheduler)</div>
+            <ul>
+              <li>Lê traces do dia, filtra os com decisões não-triviais</li>
+              <li>Seleciona 1-2 para apresentar ao utilizador via Discord ou app</li>
+              <li>Recebe o feedback (👍/👎) e o nó em questão</li>
+              <li>Constrói um meta-prompt OPRO-style com: raciocínio do nó, feedback, versões anteriores</li>
+              <li>Ollama gera nova versão do prompt para esse nó + tema</li>
+            </ul>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label green">Estrutura do prompt_versions.json</div>
+            <ul>
+              <li><code>rag_check.default</code> → lista de versões com score e timestamp</li>
+              <li><code>rag_check.code</code> → versão especializada para modo código</li>
+              <li><code>clarification.projetos</code> → especializada para modo projetos</li>
+              <li><code>clarity.default</code> → prompt de reformulação genérico</li>
+              <li>Versão ativa = sempre a última com score positivo</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- tools/registry.py -->
+    <div class="usecase-block">
+      <div class="usecase-header">
+        <div class="usecase-icon">🗂️</div>
+        <div>
+          <div class="usecase-title"><code style="font-size:14px;color:var(--accent);">tools/registry.py</code> — registo central de ferramentas</div>
+          <div class="usecase-subtitle">~40 linhas · dicionário de ferramentas + schemas JSON para o modelo</div>
+        </div>
+      </div>
+      <div class="usecase-body">
+        <div class="usecase-details">
+          <div class="detail-box">
+            <div class="detail-box-label blue">O que é o registry</div>
+            <ul>
+              <li>Um dicionário Python: <code>{"write_note": write_note_fn, ...}</code></li>
+              <li>Cada ferramenta tem: função, schema JSON (para o modelo), e lista de modos onde está ativa</li>
+              <li>O mode_router usa os schemas para construir o <code>tools</code> array que vai no request ao Ollama</li>
+              <li>O tool_executor usa o dicionário para executar a função correspondente</li>
+            </ul>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label green">As 10 ferramentas registadas</div>
+            <ul>
+              <li><code>write_note</code>, <code>read_note</code>, <code>list_files</code></li>
+              <li><code>search_memory</code>, <code>crawl_url</code>, <code>search_web</code></li>
+              <li><code>run_code</code>, <code>run_command</code>, <code>http_request</code></li>
+              <li><code>send_discord</code></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Diagrama de dependências -->
+  <h3 style="margin-top:32px;margin-bottom:16px;font-size:15px;">Como os módulos se ligam entre si</h3>
+
+  <div class="arch-grid">
+    <div class="arch-cell span3" style="background:var(--surface2);border-bottom:1px solid var(--border);text-align:center;">
+      <div class="arch-label" style="text-align:center;">Request flow — do cliente até à resposta</div>
+      <div class="arch-desc" style="text-align:center;margin-top:4px;font-family:var(--mono);font-size:12px;">
+        Cliente → <span style="color:var(--accent)">chat.py</span> → <span style="color:var(--accent2)">meta_prompt.py</span> + <span style="color:var(--green)">mode_router.py</span> + <span style="color:var(--green)">rag.py</span> → Ollama → <span style="color:var(--orange)">tool_executor.py</span> → Ollama → StreamingResponse
+      </div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label">Só lê de</div>
+      <div class="arch-title" style="font-size:13px;">Ficheiros YAML + JSON</div>
+      <div class="arch-desc"><code>mode_router</code> lê os modos. <code>meta_prompt</code> lê versões de prompts. <code>preferences.json</code> é lido pelo chat.py para injeção direta.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label yellow">Escreve em</div>
+      <div class="arch-title" style="font-size:13px;">ChromaDB + JSONL + JSON</div>
+      <div class="arch-desc"><code>rag.py</code> escreve no ChromaDB. <code>meta_prompt</code> escreve traces. <code>prompt_optimizer</code> escreve novas versões em prompt_versions.json.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label green">Nunca falam entre si</div>
+      <div class="arch-title" style="font-size:13px;">Isolamento de serviços</div>
+      <div class="arch-desc">Os serviços não se importam uns aos outros. Tudo passa pelos routers. Isto facilita testar cada serviço isoladamente e substituir um sem tocar nos outros.</div>
+    </div>
+  </div>
+
+</section>
+
+<hr class="divider">
+
+<!-- ════ PROMPT INTELLIGENCE ENGINE ════ -->
+<section>
+  <div class="section-label">v5 + v6</div>
+  <h2>Prompt Intelligence Engine — prompts que aprendem contigo <span class="new-badge">expandido v6</span></h2>
+  <p class="section-intro">Expansão do Meta-Prompt Engine da v4. Em vez de um conjunto fixo de prompts, o Jarvis acumula pares prompt-resposta ao longo do dia, classifica cada pedido por família de tarefa, compara respostas entre modelos quando útil, e usa o teu feedback para reescrever os próprios prompts iterativamente. Quatro componentes. A v6 torna explícitas as decisões de implementação: qual abordagem de routing usar, que modelo em cada família, como distinguir as duas tabelas SQLite, e quando cada componente começa a ter valor real.</p>
+
+  <!-- Nota de estado da arte -->
+  <div class="note-box blue" style="margin-bottom:32px;">
+    <div class="note-icon">🔬</div>
+    <div>
+      <div class="note-title blue">Estado da arte — o que existe e o que é sobre-engenharia</div>
+      <div class="note-text">
+        <strong>DSPy (Stanford/MIPROv2)</strong> — o framework académico de referência para optimização automática de prompts. Compila programas declarativos e descobre prompts óptimos via optimizadores. <em>Problema: requer métricas automáticas (ex: % respostas correctas num dataset). O teu sinal é subjectivo e humano — isso não encaixa. Conflitua com o FastAPI custom. Adiciona dependência pesada com magia que dificulta debug. Não usar directamente — <strong>roubar as ideias, não o framework.</strong></em><br><br>
+        <strong>OPRO (Google DeepMind)</strong> — usa um LLM como optimizador: constrói um meta-prompt com o histórico de (prompt, score) e pede ao modelo uma versão melhor. <em>Esta é a abordagem certa para ti — já está em embrião na v4.</em><br><br>
+        <strong>LLM-as-judge pairwise</strong> — o modelo juiz compara duas respostas e decide qual é melhor. Mais estável do que pontuação individual. Cuidado principal: positional bias (ordem afecta o resultado) — sempre trocar a ordem e só aceitar se ambas concordarem.<br><br>
+        <strong>Prompt Routing</strong> — em vez de um prompt monolítico, separar em famílias especializadas por tipo de tarefa. Classificação por embedding similarity (sem LLM call extra) é o método mais rápido e suficientemente preciso.<br><br>
+        <strong>O que roubar do DSPy sem usar o framework:</strong> (1) guardar pares prompt-resposta com metadata, (2) ter uma função de scoring — o teu 👍/👎 + o judge, (3) um meta-prompt OPRO-style que gera candidatos de prompt melhores com base no histórico. Estes três são suficientes para o teu caso de uso e implementam-se em Python puro sem dependências externas.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Como os 4 componentes se encaixam ── -->
+  <h3 style="margin-bottom:16px;font-size:17px;">Os 4 componentes e como se ligam ao pipeline existente</h3>
+
+  <div class="arch-grid" style="margin-bottom:32px;">
+    <div class="arch-cell span3" style="background:var(--surface2);border-bottom:1px solid var(--border);text-align:center;">
+      <div class="arch-label" style="text-align:center;">Pipeline por mensagem — com os novos componentes integrados</div>
+      <div class="arch-desc" style="text-align:center;margin-top:4px;font-family:var(--mono);font-size:11px;line-height:1.8;">
+        Mensagem → <span style="color:var(--green)">prompt_router.py</span> → família detectada<br>
+        → <span style="color:var(--accent2)">meta_prompt.py</span> (já existente) → prompt enriquecido<br>
+        → Ollama → resposta → <span style="color:var(--yellow)">interaction_store.py</span> grava par<br>
+        → <span style="color:var(--orange)">[opcional] judge.py</span> compara com 2º modelo · noite: <span style="color:var(--accent2)">optimizer.py</span> usa os pares gravados
+      </div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label green">Componente 1 — novo</div>
+      <div class="arch-title">prompt_router.py</div>
+      <div class="arch-desc">Classifica a mensagem na família certa via embedding similarity. Corre antes de tudo. Resultado: qual YAML de modo carregar. &lt; 30ms.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label">Componente 2 — novo</div>
+      <div class="arch-title">interaction_store.py</div>
+      <div class="arch-desc">Grava cada par (prompt final, resposta, modelo, família, rating) em SQLite. É o dataset que alimenta o optimizer. Sempre activo.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label orange">Componente 3 — novo</div>
+      <div class="arch-title">judge.py</div>
+      <div class="arch-desc">Envia o mesmo prompt a 2 modelos, usa phi4-mini para escolher a melhor resposta. Activado com <code>/compare</code> — não por defeito.</div>
+    </div>
+    <div class="arch-cell span3" style="border-top:1px solid var(--border);">
+      <div class="arch-label purple">Componente 4 — expansão do existente na v4</div>
+      <div class="arch-title" style="font-size:14px;">optimizer.py (expandido)</div>
+      <div class="arch-desc">Lê os pares gravados por família, filtra os que têm feedback negativo, constrói meta-prompt OPRO-style com histórico de versões + scores, e pede ao modelo uma versão melhor do prompt. Corre à noite. Já existe em embrião — agora tem dados reais para trabalhar.</div>
+    </div>
+  </div>
+
+  <!-- ── COMPONENTE 1: PROMPT ROUTER ── -->
+  <div class="usecase-block" style="margin-bottom:24px;">
+    <div class="usecase-header" style="background:rgba(62,207,142,0.06);">
+      <div class="usecase-icon">🗂️</div>
+      <div>
+        <div class="usecase-title"><code style="font-size:14px;color:var(--green);">services/prompt_router.py</code> — classificação por família de tarefa</div>
+        <div class="usecase-subtitle">~60 linhas · embedding similarity contra exemplos · sem LLM call extra · &lt; 30ms</div>
+      </div>
+    </div>
+    <div class="usecase-body">
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Cada mensagem que chega ao FastAPI é classificada numa família de tarefa antes de qualquer outra coisa. A família determina qual system prompt carregar, que ferramentas activar, e que versão de prompt usar. A classificação é feita por cosine similarity entre o embedding da mensagem e exemplos representativos de cada família — sem LLM call extra, sem latência perceptível.</p>
+
+      <h3 style="margin-bottom:14px;font-size:14px;color:var(--muted);">As 7 famílias de prompt</h3>
+      <div class="family-grid">
+        <div class="family-card">
+          <div class="family-emoji">🐛</div>
+          <div>
+            <div class="family-name">code_debug</div>
+            <div class="family-desc">Diagnóstico de erros, tracing, porquê que algo não funciona. System prompt focado em análise antes de solução.</div>
+            <div class="family-examples">"isto dá erro", "porque não funciona", "traceback says..."</div>
+          </div>
+        </div>
+        <div class="family-card">
+          <div class="family-emoji">⚡</div>
+          <div>
+            <div class="family-name">code_generate</div>
+            <div class="family-desc">Escrever código novo, funções, classes, scripts. System prompt orientado a clareza, testes e boas práticas.</div>
+            <div class="family-examples">"escreve uma função que", "cria um script para", "implementa..."</div>
+          </div>
+        </div>
+        <div class="family-card">
+          <div class="family-emoji">📦</div>
+          <div>
+            <div class="family-name">project_planning</div>
+            <div class="family-desc">Decisões de arquitectura, próximos passos, prioridades. System prompt com contexto do projecto activo.</div>
+            <div class="family-examples">"o que devo fazer a seguir", "como estruturo", "faz sentido..."</div>
+          </div>
+        </div>
+        <div class="family-card">
+          <div class="family-emoji">🔍</div>
+          <div>
+            <div class="family-name">research</div>
+            <div class="family-desc">Aprender algo, comparar tecnologias, perceber conceitos. Activa Crawl4AI e SearXNG, RAG no índice web.</div>
+            <div class="family-examples">"o que é", "explica-me", "qual a diferença entre", "estado da arte"</div>
+          </div>
+        </div>
+        <div class="family-card">
+          <div class="family-emoji">⚖️</div>
+          <div>
+            <div class="family-name">decision_support</div>
+            <div class="family-desc">Escolher entre opções, avaliar trade-offs. System prompt que força análise estruturada de prós/contras.</div>
+            <div class="family-examples">"devo usar X ou Y", "é boa ideia", "vale a pena", "faz sentido"</div>
+          </div>
+        </div>
+        <div class="family-card">
+          <div class="family-emoji">⚙️</div>
+          <div>
+            <div class="family-name">automation</div>
+            <div class="family-desc">Pedidos de webhooks e workflows — respostas em JSON estruturado, todas as ferramentas activas, sem explicações longas.</div>
+            <div class="family-examples">triggers externos, <code>/run</code>, pedidos de scripts agendados</div>
+          </div>
+        </div>
+        <div class="family-card">
+          <div class="family-emoji">💬</div>
+          <div>
+            <div class="family-name">quick_chat</div>
+            <div class="family-desc">Conversação livre, perguntas factuais curtas, sem contexto de projecto necessário. Ferramentas mínimas, modelo rápido.</div>
+            <div class="family-examples">"quanto é que", "quando foi", "sabes dizer-me", conversação casual</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom:14px;font-size:14px;color:var(--muted);margin-top:20px;">Modelo e índice RAG por família</h3>
+      <table class="model-table" style="margin-bottom:16px;">
+        <thead>
+          <tr>
+            <th>Família</th>
+            <th>Modelo</th>
+            <th>Índice RAG</th>
+            <th>Ferramentas activas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="mname">code_debug</span></td>
+            <td><span class="muse">qwen2.5-coder:7b — especialista em código</span></td>
+            <td><code>code</code></td>
+            <td><span class="muse">read_file, run_code, git_diff, run_tests</span></td>
+          </tr>
+          <tr>
+            <td><span class="mname">code_generate</span></td>
+            <td><span class="muse">qwen2.5-coder:7b — geração de código</span></td>
+            <td><code>code</code></td>
+            <td><span class="muse">read_file, write_file, run_code, run_tests</span></td>
+          </tr>
+          <tr>
+            <td><span class="mname">project_planning</span></td>
+            <td><span class="muse">qwen3:8b — melhor reasoning, thinking mode</span></td>
+            <td><code>general + code</code></td>
+            <td><span class="muse">read_file, write_note, search_memory</span></td>
+          </tr>
+          <tr>
+            <td><span class="mname">research</span></td>
+            <td><span class="muse">qwen3:8b — síntese e análise de informação</span></td>
+            <td><code>web + general</code></td>
+            <td><span class="muse">crawl_url, search_web, search_memory, write_note</span></td>
+          </tr>
+          <tr>
+            <td><span class="mname">decision_support</span></td>
+            <td><span class="muse">qwen3:8b — raciocínio estruturado pros/contras</span></td>
+            <td><code>general</code></td>
+            <td><span class="muse">search_memory, write_note</span></td>
+          </tr>
+          <tr>
+            <td><span class="mname">automation</span></td>
+            <td><span class="muse">qwen3.5:9b — rápido, bom em JSON estruturado</span></td>
+            <td><code>— (sem RAG)</code></td>
+            <td><span class="muse">todas activas — execução directa</span></td>
+          </tr>
+          <tr>
+            <td><span class="mname">quick_chat</span></td>
+            <td><span class="muse">phi4-mini — muito rápido, sem overhead</span></td>
+            <td><code>— (sem RAG)</code></td>
+            <td><span class="muse">mínimas — send_discord opcional</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note-box" style="margin-bottom:16px;">
+        <div class="note-icon">⚡</div>
+        <div>
+          <div class="note-title yellow">Conjunto mínimo viável — começa com 4 famílias</div>
+          <div class="note-text">Não implementar as 7 famílias de uma vez. Com poucas interações, ter 7 famílias significa dados insuficientes por família para o optimizer trabalhar. <strong>Começa com: code_debug · code_generate · research · quick_chat.</strong> Adiciona project_planning na semana 2, decision_support e automation quando os dados suportarem. Com menos de 30 interações por família, o optimizer não tem sinal suficiente para otimizar.</div>
+        </div>
+      </div>
+
+      <div class="usecase-details" style="margin-top:8px;">
+        <div class="detail-box">
+          <div class="detail-box-label green">Como a classificação funciona</div>
+          <ul>
+            <li>Ao arranque, o FastAPI embeda os exemplos de cada família com <code>qwen3-embedding:0.6b</code> e guarda em memória</li>
+            <li>Cada mensagem nova é embedada e comparada por cosine similarity contra todos os exemplos</li>
+            <li>A família com maior score médio entre os seus exemplos ganha</li>
+            <li>Se o score máximo for abaixo de 0.45 → fallback para <code>quick_chat</code></li>
+            <li>Override manual sempre disponível: <code>/modo code</code> força a família</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label blue">Estrutura do YAML de família</div>
+          <ul>
+            <li><code>family: code_debug</code> — identificador único</li>
+            <li><code>model: qwen2.5-coder:7b</code> — modelo para esta família</li>
+            <li><code>system_prompt_version: active</code> — aponta para prompt_versions.json</li>
+            <li><code>tools_enabled: [read_file, run_code, git_diff]</code></li>
+            <li><code>embedding_examples: ["isto dá erro...", "traceback shows...", ...]</code> — 8-12 frases</li>
+            <li><code>rag_index: code</code> — que colecção do ChromaDB usar</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Abordagem A vs B -->
+      <div class="note-box blue" style="margin-top:16px;">
+        <div class="note-icon">🧭</div>
+        <div>
+          <div class="note-title blue">Abordagem escolhida: embedding similarity (A) — não LLM classifier (B)</div>
+          <div class="note-text">
+            <strong>Abordagem A — embedding similarity (esta):</strong> ao receber uma mensagem, embeddes o texto com <code>qwen3-embedding:0.6b</code> e comparas por cosine similarity contra 8–12 frases representativas de cada família. Sem treino, sem LLM call extra, &lt; 30ms. Começas com 5–10 exemplos por família e o embedding faz o resto.<br><br>
+            <strong>Abordagem B — LLM classifier (não usar):</strong> um modelo pequeno (ex: phi4-mini) lê a mensagem e decide a categoria. Mais preciso em teoria, mas adiciona 200–500ms por pedido e gasta VRAM. Os sistemas mais avançados usam duas fases: descoberta automática de tipos por clustering e depois um classificador treinado. Over-engineered para o teu caso.<br><br>
+            <strong>Optimização de latência:</strong> o router pode correr em paralelo com o início do meta-prompt pipeline — enquanto o Nó 1 (RAG check) já começa, o embedding da classificação corre em asyncio. Latência efectiva: zero percetível.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COMPONENTE 2: INTERACTION STORE ── -->
+  <div class="usecase-block" style="margin-bottom:24px;">
+    <div class="usecase-header">
+      <div class="usecase-icon">🗃️</div>
+      <div>
+        <div class="usecase-title"><code style="font-size:14px;color:var(--accent);">services/interaction_store.py</code> — base de pares prompt-resposta</div>
+        <div class="usecase-subtitle">~80 linhas · nova tabela no SQLite existente · sempre activo · alimenta o optimizer</div>
+      </div>
+    </div>
+    <div class="usecase-body">
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Cada interação completa é gravada com todos os metadados necessários para o optimizer funcionar. O campo <code>parent_id</code> liga follow-ups à interação original, permitindo reconstruir a cadeia completa de uma conversa. O <code>human_rating</code> é o sinal mais valioso — só as interações com rating explícito são usadas para optimização.</p>
+
+      <div class="note-box green" style="margin-bottom:16px;">
+        <div class="note-icon">🗂️</div>
+        <div>
+          <div class="note-title green">Duas tabelas SQLite com propósitos distintos — não confundir</div>
+          <div class="note-text">
+            <strong>Tabela <code>conversations</code> (já existe)</strong> — historial de sessões para injetar como contexto no modelo. Registo das mensagens trocadas, por sessão, para o modelo manter coerência. Curta duração, descartável.<br><br>
+            <strong>Tabela <code>interactions</code> (nova)</strong> — dataset de pares prompt-resposta com metadados para o optimizer. Contém família detectada, versão do prompt, rating humano, score do judge, e parent_id. Esta tabela é o "cérebro de longo prazo" do sistema de optimização. Não é para contexto — é para análise. Mantida indefinidamente.
+          </div>
+        </div>
+      </div>
+
+      <div class="schema-box">
+        <div class="schema-header">
+          <span class="schema-title">tabela: interactions (SQLite)</span>
+          <span class="tech-tag" style="margin-top:0;">aiosqlite</span>
+        </div>
+        <div class="schema-body">
+          <div class="schema-row important">
+            <div class="schema-field">id</div>
+            <div class="schema-type">TEXT PK</div>
+            <div class="schema-desc">UUID único por interação — referenciado em comparações e follow-ups</div>
+          </div>
+          <div class="schema-row">
+            <div class="schema-field">timestamp</div>
+            <div class="schema-type">TEXT</div>
+            <div class="schema-desc">ISO 8601 — permite filtrar por dia, semana, ou período</div>
+          </div>
+          <div class="schema-row important">
+            <div class="schema-field">task_family</div>
+            <div class="schema-type">TEXT</div>
+            <div class="schema-desc">Família detectada pelo router (ex: <code>code_debug</code>) — chave de agrupamento para o optimizer</div>
+          </div>
+          <div class="schema-row">
+            <div class="schema-field">prompt_version</div>
+            <div class="schema-type">TEXT</div>
+            <div class="schema-desc">Versão do system prompt usada (ex: <code>v4</code>) — saber qual versão gerou cada resposta</div>
+          </div>
+          <div class="schema-row">
+            <div class="schema-field">original_message</div>
+            <div class="schema-type">TEXT</div>
+            <div class="schema-desc">Mensagem original do utilizador antes do meta-prompt — para o optimizer entender o contexto real</div>
+          </div>
+          <div class="schema-row">
+            <div class="schema-field">final_prompt</div>
+            <div class="schema-type">TEXT</div>
+            <div class="schema-desc">Prompt completo enviado ao modelo (com RAG, preferências injectadas) — o que o modelo viu de facto</div>
+          </div>
+          <div class="schema-row">
+            <div class="schema-field">model_used</div>
+            <div class="schema-type">TEXT</div>
+            <div class="schema-desc">Modelo que gerou a resposta — para análise de qual modelo performa melhor por família</div>
+          </div>
+          <div class="schema-row">
+            <div class="schema-field">response</div>
+            <div class="schema-type">TEXT</div>
+            <div class="schema-desc">Resposta final que o utilizador viu — o output a avaliar</div>
+          </div>
+          <div class="schema-row">
+            <div class="schema-field">tools_called</div>
+            <div class="schema-type">TEXT</div>
+            <div class="schema-desc">JSON array de ferramentas invocadas (ex: <code>["read_file","run_code"]</code>) — para entender padrões de uso</div>
+          </div>
+          <div class="schema-row new">
+            <div class="schema-field">human_rating</div>
+            <div class="schema-type">INTEGER</div>
+            <div class="schema-desc"><strong>O sinal mais valioso.</strong> +1 (👍), -1 (👎), ou NULL. Só interações com rating são usadas para optimização — evita ruído.</div>
+          </div>
+          <div class="schema-row new">
+            <div class="schema-field">judge_score</div>
+            <div class="schema-type">REAL</div>
+            <div class="schema-desc">Score do judge pairwise quando aplicável (0.0–1.0). NULL se não houve comparação. Complementa o human_rating.</div>
+          </div>
+          <div class="schema-row new">
+            <div class="schema-field">parent_id</div>
+            <div class="schema-type">TEXT FK</div>
+            <div class="schema-desc">Se for follow-up de outra interação, aponta para o seu ID. Permite reconstruir cadeias de conversação para análise.</div>
+          </div>
+          <div class="schema-row">
+            <div class="schema-field">comparison_winner</div>
+            <div class="schema-type">TEXT</div>
+            <div class="schema-desc">Se houve comparação <code>/compare</code>: ID da interação vencedora. Liga pares de comparação para análise de modelos.</div>
+          </div>
+          <div class="schema-row">
+            <div class="schema-field">latency_ms</div>
+            <div class="schema-type">INTEGER</div>
+            <div class="schema-desc">Tempo total da resposta em milissegundos — para detectar se certas famílias ou modelos são consistentemente lentos</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note-box" style="margin-top:4px;">
+        <div class="note-icon">💡</div>
+        <div>
+          <div class="note-title yellow">Regra de ouro: só optimizar com rated data</div>
+          <div class="note-text">Guardar tudo é barato. Mas o optimizer só deve usar interações com <code>human_rating IS NOT NULL</code> — sem feedback explícito, não tens como saber se a resposta foi boa ou má. Um 👍 rápido basta. Sugere ao utilizador (tu) fazer rating das respostas que te parecem notavelmente boas ou más — não de tudo.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COMPONENTE 3: JUDGE ── -->
+  <div class="usecase-block" style="margin-bottom:24px;">
+    <div class="usecase-header" style="background:rgba(240,148,77,0.06);">
+      <div class="usecase-icon">⚖️</div>
+      <div>
+        <div class="usecase-title"><code style="font-size:14px;color:var(--orange);">services/judge.py</code> — comparação pairwise entre modelos</div>
+        <div class="usecase-subtitle">~90 linhas · phi4-mini como juiz · activado com /compare · não por defeito</div>
+      </div>
+    </div>
+    <div class="usecase-body">
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Quando queres comparar como dois modelos diferentes respondem ao mesmo pedido, o judge corre as duas respostas pelo phi4-mini que decide qual é melhor e porquê. O resultado é guardado no interaction_store, acumulando dados reais sobre qual modelo performa melhor em que família de tarefa.</p>
+
+      <div class="compare-flow">
+        <div class="cf-col">
+          <div class="cf-label">Input</div>
+          <div class="cf-title">Mesmo prompt</div>
+          <div class="cf-body">A tua mensagem vai aos dois modelos em paralelo (asyncio.gather). Ambos processam com o mesmo contexto, RAG, e preferências.</div>
+        </div>
+        <div class="cf-sep"></div>
+        <div class="cf-arrow">→</div>
+        <div class="cf-sep"></div>
+        <div class="cf-col">
+          <div class="cf-label" style="color:var(--orange);">Juiz</div>
+          <div class="cf-title">phi4-mini (2×)</div>
+          <div class="cf-body">O juiz vê as duas respostas <strong>duas vezes com a ordem trocada</strong>. Só aceita resultado se ambas as ordens concordarem — elimina positional bias.</div>
+        </div>
+        <div class="cf-sep"></div>
+        <div class="cf-arrow">→</div>
+        <div class="cf-sep"></div>
+        <div class="cf-col">
+          <div class="cf-label" style="color:var(--green);">Output</div>
+          <div class="cf-title">Vencedor + razão</div>
+          <div class="cf-body">O modelo vencedor e a justificação do juiz são gravados. Ao longo do tempo, acumulas estatísticas por família: "para code_debug, o coder vence em 71% dos casos."</div>
+        </div>
+      </div>
+
+      <div class="usecase-details">
+        <div class="detail-box">
+          <div class="detail-box-label orange">Prompt do juiz (estrutura)</div>
+          <ul>
+            <li>Contexto: família de tarefa, pergunta original</li>
+            <li>Resposta A: <code>[texto do modelo 1]</code></li>
+            <li>Resposta B: <code>[texto do modelo 2]</code></li>
+            <li>Instrução: "Qual resposta é melhor para esta tarefa específica? Responde apenas com JSON: <code>{"winner": "A"|"B"|"tie", "reason": "..."}</code>"</li>
+            <li>Corre 2× com A↔B trocado — só aceita se winner concorda</li>
+            <li>Se discordarem → <code>tie</code> — não polui os dados</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label blue">Quando activar /compare</div>
+          <ul>
+            <li>Quando estás a testar um novo modelo (ex: qwen3.5 vs qwen3:8b para projetos)</li>
+            <li>Quando uma resposta te pareceu estranha e queres ver alternativa</li>
+            <li>Periodicamente por família para validar os YAMLs de modo actuais</li>
+            <li><strong>Não activar por defeito</strong> — duplica latência e VRAM</li>
+            <li>Acumular 10-20 comparações por família já dá dados significativos</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Estatísticas por família -->
+      <div class="detail-box" style="margin-top:12px;">
+        <div class="detail-box-label green">Estatísticas acumuladas — o que o optimizer usa</div>
+        <ul>
+          <li>Query SQL simples: <code>SELECT model_used, AVG(judge_score) FROM interactions WHERE task_family = 'code_debug' GROUP BY model_used</code></li>
+          <li>Ao fim de 30+ comparações por família, tens dados fiáveis sobre qual modelo usar onde</li>
+          <li>O mode_router.py pode automaticamente actualizar qual modelo usa por família com base nestas estatísticas</li>
+          <li>Também acumulas dados sobre latência: às vezes o modelo "pior" é suficientemente bom e 3× mais rápido</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COMPONENTE 4: OPTIMIZER EXPANDIDO ── -->
+  <div class="usecase-block" style="border-color:rgba(124,92,244,0.35);margin-bottom:24px;">
+    <div class="usecase-header" style="background:rgba(124,92,244,0.08);">
+      <div class="usecase-icon">🔁</div>
+      <div>
+        <div class="usecase-title"><code style="font-size:14px;color:var(--accent2);">services/optimizer.py</code> — expansão do existente com dados reais <span class="new-badge">expandido v5</span></div>
+        <div class="usecase-subtitle">já existe na v4 · agora tem rated interactions para trabalhar · loop OPRO-style mais robusto</div>
+      </div>
+    </div>
+    <div class="usecase-body">
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">O optimizer da v4 já existe mas corria com dados sintéticos (traces sem feedback real). Com o interaction_store a funcionar, agora tem dados reais: sabe quais prompts geraram respostas com 👎, em que família, com que versão. O loop de optimização OPRO-style torna-se muito mais preciso.</p>
+
+      <div class="usecase-flow" style="flex-wrap:wrap;gap:8px;">
+        <div class="flow-step" style="border-color:rgba(124,92,244,0.3);">
+          <div class="flow-step-num" style="color:var(--accent2);">Noite 1</div>
+          <div class="flow-step-label">Lê rated data</div>
+          <div>Filtra interações com <code>human_rating = -1</code> por família</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="border-color:rgba(79,142,247,0.3);">
+          <div class="flow-step-num" style="color:var(--accent);">Noite 2</div>
+          <div class="flow-step-label">Constrói OPRO</div>
+          <div>Meta-prompt com: versão actual, exemplos negativos, versões anteriores + scores</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="border-color:rgba(62,207,142,0.3);">
+          <div class="flow-step-num" style="color:var(--green);">Noite 3</div>
+          <div class="flow-step-label">Gera candidato</div>
+          <div>qwen3:8b gera nova versão do system prompt para aquela família</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="border-color:rgba(245,200,66,0.3);">
+          <div class="flow-step-num" style="color:var(--yellow);">Tu decides</div>
+          <div class="flow-step-label">Aprovação</div>
+          <div>Candidato fica em <code>status: pending</code> até aprovares via Discord ou app</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="border-color:rgba(240,148,77,0.3);">
+          <div class="flow-step-num" style="color:var(--orange);">Activo</div>
+          <div class="flow-step-label">Deploy</div>
+          <div>Nova versão activada em <code>prompt_versions.json</code> — versão anterior mantida para rollback</div>
+        </div>
+      </div>
+
+      <div class="usecase-details" style="margin-top:16px;">
+        <div class="detail-box">
+          <div class="detail-box-label purple">O meta-prompt OPRO que gera o candidato</div>
+          <ul>
+            <li>Contexto: "Tens um system prompt para a família <code>code_debug</code>. Ele gerou respostas com 👎 nestas situações:"</li>
+            <li>Exemplos negativos: 3-5 pares (original_message, response) com rating -1</li>
+            <li>Versões anteriores + scores médios: "v2 tinha score 0.7, v3 (actual) tem 0.4"</li>
+            <li>Instrução: "Gera uma versão melhorada do system prompt que evite estes problemas. Retorna apenas o novo prompt."</li>
+            <li>O threshold mínimo para activar: ≥ 3 ratings negativos na mesma família na mesma semana</li>
+          </ul>
+        </div>
+        <div class="detail-box">
+          <div class="detail-box-label blue">Estrutura do prompt_versions.json expandida</div>
+          <ul>
+            <li><code>code_debug.active</code> → versão em produção</li>
+            <li><code>code_debug.pending</code> → candidato aguarda aprovação</li>
+            <li><code>code_debug.history[v1, v2, v3]</code> → todas as versões com score médio</li>
+            <li>Rollback: <code>/rollback code_debug</code> → activa versão anterior imediatamente</li>
+            <li>Score médio por versão: calculado com todas as rated interactions dessa versão</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PRIORIDADE DE IMPLEMENTAÇÃO ── -->
+  <h3 style="margin-bottom:16px;font-size:17px;">Ordem de implementação — o que construir primeiro</h3>
+  <div class="priority-list" style="margin-bottom:28px;">
+    <div class="priority-row">
+      <div class="priority-num">1</div>
+      <div class="priority-title">interaction_store.py</div>
+      <div class="priority-desc">Começa aqui — cria a tabela e grava todas as interações desde o primeiro dia. Não precisas de mais nada a funcionar para começar a acumular dados. Sem dados, o optimizer e o judge não têm nada para trabalhar.</div>
+      <div class="priority-effort"><span class="pill build">~1 dia</span></div>
+    </div>
+    <div class="priority-row">
+      <div class="priority-num">2</div>
+      <div class="priority-title">Mecanismo de rating</div>
+      <div class="priority-desc">Adicionar 👍/👎 no Discord bot e na app. Quando o utilizador reage, a interação correspondente é actualizada com <code>human_rating</code>. É o sinal mais valioso de todo o sistema — sem ele, o optimizer trabalha no escuro.</div>
+      <div class="priority-effort"><span class="pill build">~0.5 dia</span></div>
+    </div>
+    <div class="priority-row">
+      <div class="priority-num purple">3</div>
+      <div class="priority-title">prompt_router.py</div>
+      <div class="priority-desc">Classifica por embedding similarity. Começa com 3-4 famílias básicas (code_debug, code_generate, research, quick_chat) e expande à medida que vês padrões nos dados de interação. Os YAMLs por família já tens a estrutura da v4 — só adicionas <code>embedding_examples</code>.</div>
+      <div class="priority-effort"><span class="pill build">~1 dia</span></div>
+    </div>
+    <div class="priority-row">
+      <div class="priority-num purple">4</div>
+      <div class="priority-title">optimizer.py expandido</div>
+      <div class="priority-desc">Já existe em embrião. Com dados reais de 2-3 semanas de uso, expandes para usar as rated interactions por família. O OPRO-style meta-prompt é ~30 linhas adicionais sobre o que já tens.</div>
+      <div class="priority-effort"><span class="pill build">~1 dia</span></div>
+    </div>
+    <div class="priority-row">
+      <div class="priority-num orange">5</div>
+      <div class="priority-title">judge.py</div>
+      <div class="priority-desc">O menos urgente — só faz sentido depois de teres 2+ modelos configurados e quereres dados objectivos sobre qual usar em que contexto. Implementar quando a base do sistema estiver estável e quiseres optimizar a escolha de modelo por família.</div>
+      <div class="priority-effort"><span class="pill warn">após deadline</span></div>
+    </div>
+  </div>
+
+  <!-- ── THRESHOLDS DE ACTIVAÇÃO ── -->
+  <h3 style="margin-bottom:16px;font-size:17px;">Thresholds de activação — quando cada componente começa a ter valor</h3>
+  <div class="arch-grid" style="margin-bottom:28px;">
+    <div class="arch-cell">
+      <div class="arch-label green">interaction_store.py</div>
+      <div class="arch-title" style="font-size:13px;">Desde o dia 1</div>
+      <div class="arch-desc">Grava desde o primeiro pedido. Não há threshold — quanto mais cedo começar, melhor. Não precisas de mais nada a funcionar para acumular dados.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label yellow">Rating 👍/👎</div>
+      <div class="arch-title" style="font-size:13px;">Desde o dia 1</div>
+      <div class="arch-desc">O sinal mais valioso. Faz rating apenas de respostas notavelmente boas ou más — não de tudo. Sem feedback explícito, o optimizer trabalha no escuro.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label">prompt_router.py</div>
+      <div class="arch-title" style="font-size:13px;">Desde o dia 1</div>
+      <div class="arch-desc">Começa com 4 famílias (code_debug, code_generate, research, quick_chat) e 8–12 exemplos por família. Expande quando os dados suportarem mais.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label purple">optimizer.py</div>
+      <div class="arch-title" style="font-size:13px;">≥ 3 ratings negativos</div>
+      <div class="arch-desc">Só gera candidato de prompt novo quando há ≥ 3 ratings negativos na mesma família na mesma semana. Abaixo disso, é ruído — não optimiza.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label orange">judge.py (/compare)</div>
+      <div class="arch-title" style="font-size:13px;">On-demand, não por defeito</div>
+      <div class="arch-desc">Activar só quando queres comparar dois modelos numa família específica. 10–20 comparações por família já dá dados significativos. Não activar em todas as mensagens — duplica latência e VRAM.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label">Estatísticas de modelo</div>
+      <div class="arch-title" style="font-size:13px;">≥ 30 comparações</div>
+      <div class="arch-desc">Ao fim de 30+ comparações por família, os dados são fiáveis para o mode_router actualizar automaticamente qual modelo usar por família. Antes disso, mantém as escolhas manuais.</div>
+    </div>
+  </div>
+
+  <!-- ── O QUE NÃO FAZER ── -->
+  <div class="note-box" style="margin-bottom:24px;">
+    <div class="note-icon">⚠️</div>
+    <div>
+      <div class="note-title yellow">O que NÃO fazer — armadilhas desta abordagem</div>
+      <div class="note-text">
+        <strong>Não usar DSPy directamente</strong> — foi desenhado para métricas automáticas (ex: % de respostas correctas num dataset). O teu sinal é subjectivo e humano. Conflitua com o teu FastAPI custom. Rouba as ideias, não o framework.<br><br>
+        <strong>Não optimizar sem rated data</strong> — guardar tudo e optimizar com base em volume é ruído. Só interações com 👍/👎 explícito devem alimentar o optimizer.<br><br>
+        <strong>Não activar /compare por defeito</strong> — duplica latência e VRAM. É uma ferramenta de análise pontual, não um componente sempre activo.<br><br>
+        <strong>Não fazer mais de 7-8 famílias no início</strong> — com poucas interações, ter 15 famílias significa dados insuficientes por família para optimizar. Começa com 4-5 e expande quando tens dados para suportar mais.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── IMPACTO NOS MÓDULOS EXISTENTES ── -->
+  <h3 style="margin-bottom:16px;font-size:15px;">Impacto nos módulos existentes — o que muda</h3>
+  <div class="arch-grid">
+    <div class="arch-cell">
+      <div class="arch-label">chat.py</div>
+      <div class="arch-title" style="font-size:13px;">+2 chamadas</div>
+      <div class="arch-desc">Adicionar <code>prompt_router.classify()</code> no início e <code>interaction_store.save()</code> no fim. Resto não muda.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label">mode_router.py</div>
+      <div class="arch-title" style="font-size:13px;">Recebe família</div>
+      <div class="arch-desc">Passa a receber a família do router em vez de classificar por intenção. Simplifica — uma responsabilidade a menos.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label green">meta_prompt.py</div>
+      <div class="arch-title" style="font-size:13px;">Sem alterações</div>
+      <div class="arch-desc">Os 3 nós de análise (RAG check, clarification, clarity) continuam iguais. A família apenas determina que versão de prompt carregar.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label">discord bot</div>
+      <div class="arch-title" style="font-size:13px;">+Reactions 👍👎</div>
+      <div class="arch-desc">Reagir com 👍/👎 a uma resposta faz PUT em <code>/interactions/{id}/rating</code>. ~15 linhas adicionais.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label purple">optimizer.py</div>
+      <div class="arch-title" style="font-size:13px;">Expansão</div>
+      <div class="arch-desc">Em vez de traces sintéticos, lê <code>interactions</code> da SQLite. A lógica OPRO-style já existe — só muda a fonte de dados.</div>
+    </div>
+    <div class="arch-cell">
+      <div class="arch-label yellow">SQLite schema</div>
+      <div class="arch-title" style="font-size:13px;">Nova tabela</div>
+      <div class="arch-desc">Adicionar tabela <code>interactions</code> ao schema existente. A tabela de histórico de conversas mantém-se separada — propósitos diferentes.</div>
+    </div>
+  </div>
+
+</section>
+
+<footer>
+  Projeto Jarvis · Arquitetura v7 · junho 2026 · Deadline 9 agosto 2026 · v7: Timeline incremental revista — construção camada a camada com datas específicas e próximo passo sempre visível
+</footer>
+
+</body>
+</html>
