@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jarvis</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .home-wrap {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .home-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--accent-lo);
+      border: 1px solid rgba(124,106,247,.3);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .home-icon svg {
+      width: 28px;
+      height: 28px;
+      color: var(--accent);
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -1px;
+      margin: 0 0 8px;
+    }
+    h1 span { color: var(--accent); }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      margin: 0 0 36px;
+    }
+
+    .btn-start {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 11px 32px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-start:hover  { background: var(--accent-dk); color: #fff; text-decoration: none; }
+    .btn-start:active { transform: scale(.97); }
+
+    .version {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 48px;
+      opacity: .45;
+    }
+  </style>
+</head>
+<body>
+
+<div class="home-wrap">
+  <div class="home-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+    </svg>
+  </div>
+
+  <h1>Jar<span>vis</span></h1>
+  <p class="subtitle">O teu assistente pessoal</p>
+
+  <a class="btn-start" href="login.html">Começar</a>
+
+  <span class="version">v0.1.0</span>
+</div>
+
+</body>
+</html>

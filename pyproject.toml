@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-app = "src.main:run"
+dev = "src.main:run"
  
 [tool.uv]
 package = true
