@@ -2,10 +2,12 @@
 Personal Assistant Application that focuses on project building and evolving over time, totally local or hosted at home.
 
 ### Setup Repo and Run Application
-1. Open terminal
-2. `pip install uv`
-3. `uv sync`
-4. `uv run dev`
+1. Clone .env.example as only .env
+2. Edit .env and add your username and password as plain text
+3. Open terminal
+4. `pip install uv`
+5. `uv sync`
+6. `uv run dev`
 
 ### Setup Local Chatbot
 1. Install Ollama
