@@ -20,6 +20,3 @@ Personal Assistant Application that focuses on project building and evolving ove
 3. Open terminal
 4. Make sure the application is running (`uv run dev`)
 5. `cargo tauri dev`
-   
-## Run Simple Chat CLI
-To run, while the application is up (`uv run dev`), run the tests/simple_chat_cli.py.
