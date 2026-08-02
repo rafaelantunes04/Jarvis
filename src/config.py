@@ -28,6 +28,8 @@ DEFAULT_OPTIONS = {
 #   Sliding Window
 SLIDING_WINDOW_SIZE = 3
 
+SLIDING_WINDOW_MAX_TOKENS = 10000
+
 SLIDING_WINDOW_PATH = "/storage/sliding_window.json"
 
 #   Memoria Longo Prazo
@@ -63,4 +65,3 @@ MEMORY_CONFIG = {
         },
     },
 }
- 
