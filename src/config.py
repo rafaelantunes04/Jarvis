@@ -30,7 +30,7 @@ SLIDING_WINDOW_SIZE = 3
 
 SLIDING_WINDOW_MAX_TOKENS = 10000
 
-SLIDING_WINDOW_PATH = "/storage/sliding_window.json"
+SLIDING_WINDOW_PATH = "/storage/"
 
 #   Memoria Longo Prazo
 MEMORY_LLM = "qwen2.5:3b"
@@ -65,3 +65,16 @@ MEMORY_CONFIG = {
         },
     },
 }
+
+
+
+
+
+
+
+
+
+
+# CHECKS
+if SLIDING_WINDOW_MAX_TOKENS < 2000: raise ValueError("max_tokens must be >= 2000")
+if SLIDING_WINDOW_SIZE < 1: raise ValueError("n must be >= 1")

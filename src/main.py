@@ -14,10 +14,16 @@ app = FastAPI()
 
 @app.post("/chat", response_model = ChatResponse)
 async def chat(req: ChatRequest):
-
     verify_credentials(username=req.username, password=req.password)
+    
+    user_message = req.message    
 
-    result = chat_with_llm(message=req.message)
+    long_term_memory = memory.get_long_term_memory(message=user_message)
+    buffers = memory.get_history()
+
+    result = chat_with_llm(message=req.message, history=buffers, long_term=long_term_memory)
+
+    memory.add(new_question=user_message, new_answer=result)
 
     return ChatResponse(message=result)
 
