@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import deque
 
-from src.json_store import JsonSlidingWindowStore
+from src.memory.json_store import JsonSlidingWindowStore
 
 
 def estimate_tokens(text: str) -> int:

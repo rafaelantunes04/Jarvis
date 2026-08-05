@@ -307,13 +307,25 @@
   <nav class="sidebar-nav">
     <div class="nav-label">Menu</div>
 
-    <div class="nav-item active" onclick="switchTab('chat')">
+    <div class="nav-item active" data-page="chat" onclick="switchTab('chat')">
       <!-- message icon -->
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
       </svg>
       Chat
+    </div>
+
+    <div class="nav-item" data-page="memory" onclick="window.location.href='memory.html'">
+      <!-- brain / memory icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.5 2a3.5 3.5 0 0 0-3.5 3.5v.55A3 3 0 0 0 4 9v1a3 3 0 0 0-1 2.24A3 3 0 0 0 4.5 15
+                 v.5A3.5 3.5 0 0 0 8 19a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 9.5 2z"></path>
+        <path d="M14.5 2a3.5 3.5 0 0 1 3.5 3.5v.55A3 3 0 0 1 20 9v1a3 3 0 0 1 1 2.24A3 3 0 0 1 19.5 15
+                 v.5A3.5 3.5 0 0 1 16 19a3.5 3.5 0 0 1-3.5-3.5v-9A3.5 3.5 0 0 1 14.5 2z"></path>
+      </svg>
+      Memória
     </div>
 
     <div class="nav-item" onclick="switchTab('settings')">
@@ -385,6 +397,22 @@
 
 </main>
 
+<!-- ════════════════ NAV CONTEXT MENU ════════════════
+     Preenchido/controlado por navbar.js. Aparece com o botão
+     direito do rato num item da navegação lateral. -->
+<div id="nav-context-menu" class="context-menu">
+  <div class="context-menu-item" data-action="open-window">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+      <polyline points="15 3 21 3 21 9"></polyline>
+      <line x1="10" y1="14" x2="21" y2="3"></line>
+    </svg>
+    Abrir em nova janela
+  </div>
+</div>
+
+<script src="navbar.js"></script>
 <script src="chat.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 from mem0 import Memory as Mem0Memory
 
 from src.config import MEMORY_CONFIG, USER_ID, SLIDING_WINDOW_SIZE, SLIDING_WINDOW_MAX_TOKENS
-from src.buffer import Buffer, ConversationBuffer, TokenBuffer
+from src.memory.buffer import Buffer, ConversationBuffer, TokenBuffer
 """
 Every class/function below handles the short-term (sliding window) and
 long-term (mem0) conversation memory used by the chat assistant.
@@ -52,7 +52,7 @@ class Memory:
         """        
         messages = buffer.get_history()
 
-        self.long_term_memory.add(messages, user_id=USER_ID)
+        self.long_term_memory.add(messages=messages, filters={"user_id": USER_ID})
 
         buffer.clear()
 
@@ -78,10 +78,10 @@ class Memory:
         """
         if message:
             result = self.long_term_memory.search(
-                query=message, user_id=USER_ID, limit=limit
+                query=message, filters={"user_id": USER_ID}, limit=limit
             )
         else:
-            result = self.long_term_memory.get_all(user_id=USER_ID)
+            result = self.long_term_memory.get_all(filters={"user_id": USER_ID})
 
         # mem0 pode devolver uma lista diretamente ou um dict {"results": [...]}
         # dependendo da versão/config; normalizamos aqui

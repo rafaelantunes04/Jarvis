@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-
+from os import getenv
 load_dotenv()
 
 
@@ -38,14 +38,16 @@ EMBED_MODEL = "nomic-embed-text"
 
 MEMORY_DB_PATH = "/storage/memory_db"
 
-USER_ID = "Rafael"
+USER_ID = getenv("APP_USERNAME")
 
 MEMORY_CONFIG = {
     "vector_store": {
-        "provider": "chroma",
+        "provider": "qdrant",
         "config": {
             "collection_name": "memory",
-            "path": MEMORY_DB_PATH,
+            "host": "localhost",
+            "port": 6333,
+            "embedding_model_dims": 768,
         },
     },
     "llm": {
@@ -65,7 +67,6 @@ MEMORY_CONFIG = {
         },
     },
 }
-
 
 
 

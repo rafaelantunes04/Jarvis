@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jarvis · Memória</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: row;
+    }
+
+    /* ══════════════ LEFT SIDEBAR (igual ao chat.html) ══════════════ */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 0;
+    }
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sidebar-brand .icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent-lo);
+      border: 1px solid rgba(124,106,247,.3);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-brand .icon svg { width: 15px; height: 15px; color: var(--accent); }
+    .sidebar-brand .brand-text h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      margin: 0 0 2px;
+    }
+    .sidebar-brand .brand-text span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 8px;
+    }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .8px;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 10px 8px 4px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      transition: background .12s, color .12s;
+      user-select: none;
+    }
+    .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .nav-item:hover  { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: var(--accent-lo); color: var(--accent); }
+    .nav-item.active svg { color: var(--accent); }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--border);
+      padding: 12px 12px;
+      flex-shrink: 0;
+    }
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      background: var(--accent-lo);
+      border: 1px solid rgba(124,106,247,.25);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .user-info .user-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .user-info .user-status { font-size: 11px; color: var(--muted); }
+
+    .sidebar-footer .btn-ghost {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    .sidebar-footer .btn-ghost svg { width: 13px; height: 13px; }
+
+    /* ══════════════ MAIN AREA ══════════════ */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .memory-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .memory-header .dot {
+      width: 8px;
+      height: 8px;
+      background: #4caf7d;
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse 1.8s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: .35; }
+    }
+    .memory-header .title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .memory-header .badge {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 3px 9px;
+    }
+    .memory-header .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .memory-header .btn-refresh {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: not-allowed;
+      opacity: .6;
+    }
+    .memory-header .btn-refresh svg { width: 13px; height: 13px; }
+
+    /* Info banner */
+    .preview-banner {
+      margin: 16px 20px 0;
+      background: var(--accent-lo);
+      border: 1px solid rgba(124,106,247,.3);
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .preview-banner svg { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; }
+    .preview-banner b { color: var(--accent); }
+
+    /* Content grid */
+    .memory-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-content: start;
+    }
+    @media (max-width: 900px) {
+      .memory-content { grid-template-columns: 1fr; }
+    }
+
+    .mem-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Panels */
+    .mem-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .mem-panel-header {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .mem-panel-header .p-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: var(--accent-lo);
+      border: 1px solid rgba(124,106,247,.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .mem-panel-header .p-icon svg { width: 13px; height: 13px; color: var(--accent); }
+    .mem-panel-header .p-titles h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0;
+    }
+    .mem-panel-header .p-titles span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .mem-panel-header .p-count {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 3px 9px;
+      white-space: nowrap;
+    }
+
+    .mem-panel-body {
+      padding: 14px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Progress bar (Buffer de Tokens) */
+    .mem-progress-track {
+      height: 7px;
+      border-radius: 999px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .mem-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 999px;
+    }
+    .mem-progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* Exchange / memory item cards */
+    .mem-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    .mem-item .mem-item-q {
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+    .mem-item .mem-item-a {
+      color: var(--muted);
+    }
+    .mem-item .mem-item-meta {
+      margin-top: 6px;
+      font-size: 10.5px;
+      color: var(--muted);
+      opacity: .7;
+    }
+
+    /* Empty state */
+    .mem-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 26px 10px;
+      color: var(--muted);
+      font-size: 12.5px;
+      text-align: center;
+    }
+    .mem-empty svg { width: 26px; height: 26px; opacity: .35; }
+
+    /* Long-term memory search */
+    .mem-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      height: 36px;
+    }
+    .mem-search svg { width: 14px; height: 14px; color: var(--muted); flex-shrink: 0; }
+    .mem-search input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 12.5px;
+      height: 100%;
+    }
+    .mem-search input::placeholder { color: var(--muted); }
+    .mem-search input:disabled { cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════ SIDEBAR ════════════════ -->
+<aside class="sidebar">
+
+  <div class="sidebar-brand">
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h2>Jarvis</h2>
+      <span>assistant</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-label">Menu</div>
+
+    <div class="nav-item" data-page="chat" onclick="window.location.href='chat.html'">
+      <!-- message icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      Chat
+    </div>
+
+    <div class="nav-item active" data-page="memory">
+      <!-- brain / memory icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.5 2a3.5 3.5 0 0 0-3.5 3.5v.55A3 3 0 0 0 4 9v1a3 3 0 0 0-1 2.24A3 3 0 0 0 4.5 15
+                 v.5A3.5 3.5 0 0 0 8 19a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 9.5 2z"></path>
+        <path d="M14.5 2a3.5 3.5 0 0 1 3.5 3.5v.55A3 3 0 0 1 20 9v1a3 3 0 0 1 1 2.24A3 3 0 0 1 19.5 15
+                 v.5A3.5 3.5 0 0 1 16 19a3.5 3.5 0 0 1-3.5-3.5v-9A3.5 3.5 0 0 1 14.5 2z"></path>
+      </svg>
+      Memória
+    </div>
+
+    <div class="nav-item" onclick="switchTab('settings')">
+      <!-- settings icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33
+                 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33
+                 l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4
+                 h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06
+                 A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51
+                 a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9
+                 a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+      Definições
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-avatar" id="avatar-initials">?</div>
+      <div class="user-info">
+        <div class="user-name"  id="sidebar-username">—</div>
+        <div class="user-status">Online</div>
+      </div>
+    </div>
+    <button class="btn-ghost" onclick="logout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+        <polyline points="16 17 21 12 16 7"></polyline>
+        <line x1="21" y1="12" x2="9" y2="12"></line>
+      </svg>
+      Sair
+    </button>
+  </div>
+</aside>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<main class="main">
+
+  <div class="memory-header">
+    <div class="dot"></div>
+    <span class="title">Memória</span>
+    <span class="badge">Pré-visualização</span>
+    <span class="sub">
+      <span id="header-user"></span>
+      <button class="btn-refresh" disabled title="Disponível numa próxima versão">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        Atualizar
+      </button>
+    </span>
+  </div>
+
+  <div class="preview-banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="16" x2="12" y2="12"></line>
+      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </svg>
+    <span>Esta é apenas a <b>interface</b> da página de Memória. A leitura e atualização em tempo real dos dados reais (buffers e memória de longo prazo) ainda não estão implementadas.</span>
+  </div>
+
+  <div class="memory-content">
+
+    <!-- ── Coluna esquerda: memória de curto prazo (sliding windows) ── -->
+    <div class="mem-col">
+
+      <!-- Janela de conversa (ConversationBuffer) -->
+      <section class="mem-panel">
+        <div class="mem-panel-header">
+          <div class="p-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <div class="p-titles">
+            <h3>Janela de Conversa</h3>
+            <span>Últimas trocas (conv_buffer)</span>
+          </div>
+          <div class="p-count" id="conv-buffer-count">0 / 3</div>
+        </div>
+        <div class="mem-panel-body" id="conv-buffer-body">
+          <div class="mem-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Sem trocas para mostrar
+          </div>
+        </div>
+      </section>
+
+      <!-- Buffer de tokens (TokenBuffer) -->
+      <section class="mem-panel">
+        <div class="mem-panel-header">
+          <div class="p-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+              <path d="M3 9h18"></path>
+            </svg>
+          </div>
+          <div class="p-titles">
+            <h3>Buffer de Tokens</h3>
+            <span>Janela intermédia (token_buffer)</span>
+          </div>
+          <div class="p-count" id="token-buffer-count">0 / 10000</div>
+        </div>
+        <div class="mem-panel-body">
+          <div class="mem-progress-track">
+            <div class="mem-progress-fill" id="token-progress-fill"></div>
+          </div>
+          <div class="mem-progress-label">
+            <span id="token-progress-text">0 tokens usados</span>
+            <span>limite: 10000</span>
+          </div>
+
+          <div id="token-buffer-body" style="margin-top: 4px;">
+            <div class="mem-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                <path d="M3 9h18"></path>
+              </svg>
+              Sem trocas para mostrar
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ── Coluna direita: memória de longo prazo (mem0) ── -->
+    <div class="mem-col">
+      <section class="mem-panel" style="height: 100%;">
+        <div class="mem-panel-header">
+          <div class="p-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+            </svg>
+          </div>
+          <div class="p-titles">
+            <h3>Memória de Longo Prazo</h3>
+            <span>Vetorial (mem0 · chroma)</span>
+          </div>
+          <div class="p-count" id="long-term-count">0</div>
+        </div>
+        <div class="mem-panel-body">
+          <div class="mem-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" placeholder="Pesquisar na memória… (em breve)" disabled />
+          </div>
+
+          <div id="long-term-body">
+            <div class="mem-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+              </svg>
+              Sem memórias para mostrar
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- ════════════════ NAV CONTEXT MENU ════════════════
+     Preenchido/controlado por navbar.js. Aparece com o botão
+     direito do rato num item da navegação lateral. -->
+<div id="nav-context-menu" class="context-menu">
+  <div class="context-menu-item" data-action="open-window">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+      <polyline points="15 3 21 3 21 9"></polyline>
+      <line x1="10" y1="14" x2="21" y2="3"></line>
+    </svg>
+    Abrir em nova janela
+  </div>
+</div>
+
+<script src="navbar.js"></script>
+<script src="memory.js"></script>
+</body>
+</html>
