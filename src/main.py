@@ -1,21 +1,56 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
 
-from src.api_classes import ChatRequest, ChatResponse
-from src.auth import verify_credentials
+from src.api_classes import ChatRequest, ChatResponse, LoginRequest, LoginResponse, MemoryResponse, MemoryRequest
+
 from src.chatbot import chat_with_llm
+
+from src.auth import authenticator
 from src.memory import memory
 
 from src.config import HOST, PORT
 
 app = FastAPI()
 
+# Safe Cookies Tauri
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:1420", "tauri://localhost"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+@app.post("/login", response_model = LoginResponse)
+async def login(req: LoginRequest, response: Response):
+    token = authenticator.verify_login(username=req.username, password=req.password)
+
+    response.set_cookie(
+        key="token",
+        value=token,
+        httponly=True,
+        samesite="strict",
+        max_age=30 * 60,
+        path="/",
+    )
+    
+    return LoginResponse(token=token)
+
+
+@app.post("/logout")
+async def logout(response: Response):
+    response.delete_cookie(key="token", path="/")
+    return {"detail": "Sessão terminada."}
+
+
+@app.post("/memory", response_model = MemoryResponse)
+async def memory_request(user: dict = Depends(authenticator.verify_token)):
+    ...
 
 @app.post("/chat", response_model = ChatResponse)
-async def chat(req: ChatRequest):
-    verify_credentials(username=req.username, password=req.password)
-    
+async def chat(req: ChatRequest, user: dict = Depends(authenticator.verify_token)):
+
     user_message = req.message    
 
     long_term_memory = memory.get_long_term_memory(message=user_message)

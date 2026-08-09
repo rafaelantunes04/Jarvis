@@ -1,36 +1,22 @@
+use reqwest::Client;
+mod api_classes;
 
-use serde::{Deserialize, Serialize};
-
-// ── Estruturas de pedido / resposta ──────────────────────────
-#[derive(Serialize)]
-struct ChatRequest<'a> {
-    username: &'a str,
-    password: &'a str,
-    message:  &'a str,
+// Estado global (partilhado entre comandos)
+struct AppState {
+    client: Client,
 }
 
-#[derive(Deserialize)]
-struct ChatResponse {
-    message: String,
-}
-
-// ── Comando Tauri ─────────────────────────────────────────────
-/// Envia uma mensagem ao servidor local e devolve a resposta.
-/// Replica o comportamento do script Python original.
 #[tauri::command]
-async fn send_message(
+async fn login(
+    state: tauri::State<'_, AppState>,
     username: String,
     password: String,
-    message:  String,
 ) -> Result<String, String> {
-    let client = reqwest::Client::new();
-
-    let res = client
-        .post("http://localhost:8000/chat")
-        .json(&ChatRequest {
+    let res = state.client
+        .post("http://127.0.0.1:8000/login")
+        .json(&api_classes::LoginRequest {
             username: &username,
             password: &password,
-            message:  &message,
         })
         .send()
         .await
@@ -39,7 +25,36 @@ async fn send_message(
     match res.status().as_u16() {
         401 => Err("401: Credenciais inválidas.".into()),
         200 => {
-            let body: ChatResponse = res
+            let body: api_classes::LoginResponse = res
+                .json()
+                .await
+                .map_err(|e| format!("Erro ao ler resposta: {e}"))?;
+            Ok(body.token)
+        }
+        status => Err(format!("Servidor devolveu HTTP {status}")),
+    }
+}
+
+#[tauri::command]
+async fn chat(
+    state: tauri::State<'_, AppState>,
+    message: String,
+    token: String,
+) -> Result<String, String> {
+    let res = state.client
+        .post("http://127.0.0.1:8000/chat")
+        .json(&api_classes::ChatRequest {
+            message: &message,
+            token: &token,
+        })
+        .send()
+        .await
+        .map_err(|e| format!("Erro de ligação: {e}"))?;
+
+    match res.status().as_u16() {
+        401 => Err("401: Token Expirado ou Invalido".into()),
+        200 => {
+            let body: api_classes::ChatResponse = res
                 .json()
                 .await
                 .map_err(|e| format!("Erro ao ler resposta: {e}"))?;
@@ -49,13 +64,14 @@ async fn send_message(
     }
 }
 
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![send_message])
+        .manage(AppState {
+            client: Client::new(),
+        })
+        .invoke_handler(tauri::generate_handler![chat, login])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-

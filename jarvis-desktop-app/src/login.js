@@ -13,6 +13,20 @@ function hideError() {
   errBanner.classList.remove('show');
 }
 
+async function Login() {
+  const username = inpUser.value.trim();
+  const password = inpPass.value
+
+  if (!username || !password) {
+    showError('Preenche o utilizador e a palavra-passe.');
+    return;
+  }
+
+  hideError();
+  loginBtn.disabled  = true;
+  loginBtn.textContent = 'A entrar…';
+}
+
 async function doLogin() {
   const username = inpUser.value.trim();
   const password = inpPass.value;
