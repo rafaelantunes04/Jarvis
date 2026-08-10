@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api_classes import ChatRequest, ChatResponse, LoginRequest, LoginResponse, MemoryResponse, MemoryRequest
+from src.api_classes import ChatRequest, ChatResponse, LoginRequest, MemoryResponse
 
 from src.chatbot import chat_with_llm
 
@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/login", response_model = LoginResponse)
+@app.post("/login")
 async def login(req: LoginRequest, response: Response):
     token = authenticator.verify_login(username=req.username, password=req.password)
 
@@ -34,8 +34,6 @@ async def login(req: LoginRequest, response: Response):
         max_age=30 * 60,
         path="/",
     )
-    
-    return LoginResponse(token=token)
 
 
 @app.post("/logout")

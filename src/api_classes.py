@@ -14,17 +14,6 @@ class LoginRequest(BaseModel):
     username: str
     password: str
 
-class LoginResponse(BaseModel):
-    """
-    (Sent Header)
-    Class used by FastAPI to send the token back to the user
-
-    (Used in main.py in /login post)
-    """
-    token: str
-
-class MemoryRequest(BaseModel):
-    ...
 
 class MemoryResponse(BaseModel):
     ...
