@@ -8,7 +8,9 @@ load_dotenv()
 HOST = "0.0.0.0"
 PORT = 8000
 
-
+# AUTH
+MAX_ATTEMPTS = 5
+WINDOW_SECONDS = 3600
 
 # LLM
 DEFAULT_MODEL = "qwen2.5:3b"

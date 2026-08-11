@@ -7,33 +7,43 @@ import jwt
 from datetime import datetime, timezone, timedelta
 import secrets
 
+from src.config import MAX_ATTEMPTS, WINDOW_SECONDS
+
 class Authenticator:
     def __init__(self):
         self.hasher = PasswordHasher()
-
         self.secret_key = secrets.token_hex(32)
+        self.last_attempts = 0
+        self.last_attempt_time = datetime.now(timezone.utc)
 
-        if not os.getenv("APP_PASSWORD"):
-            print("WARNING: Password not set in .ENV")
-            return
-
-        # Hash Password in env if not hashed
+        # Hash password if not already hashed
         if not self.is_argon2_hash(os.getenv("APP_PASSWORD")):
-            os.environ["APP_PASSWORD"] = self.hasher.hash(os.getenv("APP_PASSWORD"))
+            self._hashed_password = self.hasher.hash(os.getenv("APP_PASSWORD"))
+        else:
+            self._hashed_password = os.getenv("APP_PASSWORD")
 
     def is_argon2_hash(self, password_str: str) -> bool:
-        """
-        Verifica se a string é um hash Argon2
-        """
         return re.match(
             r'^\$argon2(i|d|id)\$v=\d+\$m=\d+,t=\d+,p=\d+\$[a-zA-Z0-9+/]+\$[a-zA-Z0-9+/]+$',
             password_str
         ) is not None
 
     def verify_login(self, username: str, password: str) -> str:
-        """
-        Verification of user input from the app
-        """
+        now = datetime.now(timezone.utc)
+
+        # ✅ Rate limiting fixo
+        if self.last_attempts >= MAX_ATTEMPTS:
+            time_since_last_attempt = now - self.last_attempt_time
+            if time_since_last_attempt <= timedelta(seconds=WINDOW_SECONDS):
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Máximo de tentativas excedido. Tente novamente mais tarde.",
+                )
+            self.last_attempts = 0
+
+        self.last_attempts += 1
+        self.last_attempt_time = now
+
         if username != os.getenv("APP_USERNAME"):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -41,24 +51,21 @@ class Authenticator:
             )
 
         try:
-            self.hasher.verify(os.getenv("APP_PASSWORD"), password)
+            self.hasher.verify(self._hashed_password, password)
         except VerifyMismatchError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Credenciais inválidas.",
             )
 
-
+        self.last_attempts = 0
         return jwt.encode(
-            {"sub": username, "exp": datetime.now(timezone.utc) + timedelta(minutes=30)},
+            {"sub": username, "exp": now + timedelta(minutes=30)},
             self.secret_key,
             algorithm="HS256"
         )
 
-    def verify_token(self, token: str = Cookie(None)) -> dict:
-        """
-        Valida um JWT token e retorna o payload
-        """
+    def verify_token(self, token: str | None = None) -> dict:
         if not token:
             raise HTTPException(status_code=401, detail="Não autenticado.")
         try:

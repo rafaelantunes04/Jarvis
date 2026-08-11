@@ -28,6 +28,7 @@ async def login(req: LoginRequest, response: Response):
 
     response.set_cookie(
         key="token",
+        secure=True,
         value=token,
         httponly=True,
         samesite="strict",
