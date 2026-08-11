@@ -64,7 +64,7 @@ class Authenticator:
             algorithm="HS256"
         )
 
-    def verify_token(self, token: str | None = None) -> dict:
+    def verify_token(self, token: str = Cookie(None)) -> dict:
         if not token:
             raise HTTPException(status_code=401, detail="Não autenticado.")
         try:

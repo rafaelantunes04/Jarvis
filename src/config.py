@@ -32,7 +32,7 @@ SLIDING_WINDOW_SIZE = 3
 
 SLIDING_WINDOW_MAX_TOKENS = 10000
 
-SLIDING_WINDOW_PATH = "/storage/"
+SLIDING_WINDOW_PATH = "./storage/"
 
 #   Memoria Longo Prazo
 MEMORY_LLM = "qwen2.5:3b"

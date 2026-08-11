@@ -78,7 +78,7 @@ class Memory:
         """
         if message:
             result = self.long_term_memory.search(
-                query=message, filters={"user_id": USER_ID}, limit=limit
+                query=message, filters={"user_id": USER_ID}, top_k=limit
             )
         else:
             result = self.long_term_memory.get_all(filters={"user_id": USER_ID})

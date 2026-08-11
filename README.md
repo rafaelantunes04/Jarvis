@@ -17,7 +17,7 @@ Personal Assistant Application that focuses on project building and evolving ove
 ### Setup Local Chatbot
 1. Install Ollama
 2. Open terminal
-3. `ollama pull llama3.2:1b`
+3. `ollama pull qwen2.5:3b`
 
 ## Setup and Run Aplication
 1. Install Rust Programming Language
