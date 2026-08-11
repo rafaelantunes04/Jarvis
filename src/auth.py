@@ -31,7 +31,6 @@ class Authenticator:
     def verify_login(self, username: str, password: str) -> str:
         now = datetime.now(timezone.utc)
 
-        # ✅ Rate limiting fixo
         if self.last_attempts >= MAX_ATTEMPTS:
             time_since_last_attempt = now - self.last_attempt_time
             if time_since_last_attempt <= timedelta(seconds=WINDOW_SECONDS):
