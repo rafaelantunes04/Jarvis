@@ -27,12 +27,9 @@ async function doLogin() {
   loginBtn.textContent = 'A entrar…';
 
   try {
-    // Probe: envia mensagem vazia para validar credenciais
-    await invoke('send_message', { username, password, message: '__ping__' });
+    await invoke('login', { username, password });
 
-    // Credenciais válidas — guarda na sessão e navega para o chat
     sessionStorage.setItem('jarvis_user', username);
-    sessionStorage.setItem('jarvis_pass', password);
     window.location.href = 'chat.html';
 
   } catch (e) {

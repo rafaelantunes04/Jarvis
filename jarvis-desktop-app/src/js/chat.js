@@ -1,10 +1,6 @@
-const { invoke } = window.__TAURI__.core;
-
-// Auth guard
 const USERNAME = sessionStorage.getItem('jarvis_user');
-const PASSWORD = sessionStorage.getItem('jarvis_pass');
 
-if (!USERNAME || !PASSWORD) {
+if (!USERNAME) {
   window.location.href = 'login.html';
 }
 
@@ -71,11 +67,7 @@ async function sendMessage() {
   showTyping();
 
   try {
-    const reply = await invoke('send_message', {
-      username: USERNAME,
-      password: PASSWORD,
-      message:  text,
-    });
+    const reply = await invoke('chat', { message: text });
     hideTyping();
     appendMsg('bot', reply);
   } catch (e) {
@@ -83,7 +75,7 @@ async function sendMessage() {
     const err = String(e);
     if (err.includes('401')) {
       appendMsg('bot', '⚠️ Sessão inválida. A redirecionar para o login…');
-      setTimeout(logout, 1500);
+      setTimeout(sidebarLogout, 1500);
     } else {
       appendMsg('bot', `⚠️ Erro: ${e}`);
     }

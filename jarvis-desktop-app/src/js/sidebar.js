@@ -9,6 +9,7 @@
  *
  * Para adicionar uma página nova, basta acrescentar uma entrada a SIDEBAR_NAV.
  */
+const { invoke } = window.__TAURI__.core;
 
 const SIDEBAR_NAV = [
   {
@@ -32,9 +33,13 @@ const SIDEBAR_NAV = [
   },
 ];
 
-function sidebarLogout() {
+async function sidebarLogout() {
+  try {
+    await invoke('logout');
+  } catch (e) {
+    console.warn('Falha ao terminar sessão no servidor:', e);
+  }
   sessionStorage.removeItem('jarvis_user');
-  sessionStorage.removeItem('jarvis_pass');
   window.location.href = 'login.html';
 }
 
