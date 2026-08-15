@@ -29,22 +29,22 @@ class Memory:
         Adds a new question/answer exchange to the first buffer, 
         having caution to not overfill both
         """
+        self.conv_buffer.add(question=new_question, answer=new_answer)
+
         if not self.conv_buffer._exceeds_limit():
-            self.conv_buffer.add(question=new_question, answer=new_answer)
+            self.conv_buffer.update_json()
             return
 
         switching_conv = self.conv_buffer.pop()
 
-        self.conv_buffer.add(question=new_question, answer=new_answer)
-
         if self.token_buffer._exceeds_limit():
-            self._flush_to_long_term_memory(self.token_buffer)
+            # self._flush_to_long_term_memory(self.token_buffer)
+            self.token_buffer.clear()
 
         self.token_buffer.add(switching_conv["question"], switching_conv["answer"])
 
         self.conv_buffer.update_json()
         self.token_buffer.update_json()
-        
 
     def _flush_to_long_term_memory(self, buffer: Buffer) -> None:
         """

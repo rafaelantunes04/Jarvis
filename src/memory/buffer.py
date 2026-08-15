@@ -61,6 +61,7 @@ class Buffer(ABC):
         state to disk.
         """
         self.history.clear()
+        self.update_json()
 
     def get_history(self) -> list[dict[str, str]]:
         """

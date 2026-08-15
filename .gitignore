@@ -7,7 +7,7 @@ wheels/
 *.egg-info
 .venv
 .env
-storage/qdrant_storage/
+storage/*
 
 
 # JARVIS DESKTOP APP

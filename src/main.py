@@ -57,7 +57,7 @@ async def chat(req: ChatRequest, user: dict = Depends(authenticator.verify_token
 
     result = chat_with_llm(message=req.message, history=buffers, long_term=long_term_memory)
 
-    # memory.add(new_question=req.message, new_answer=result)
+    memory.add(new_question=req.message, new_answer=result)
 
     return ChatResponse(message=result)
 
@@ -69,7 +69,7 @@ def run():
         "src.main:app",
         host = HOST,
         port = PORT,
-        reload = True
+        reload = False
     )
 
 
