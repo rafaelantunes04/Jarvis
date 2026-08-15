@@ -1,0 +1,11 @@
+/* Estilos específicos da página de Definições podem ir aqui */
+.chat-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.chat-header .title { font-size: 14px; font-weight: 600; color: var(--text); }

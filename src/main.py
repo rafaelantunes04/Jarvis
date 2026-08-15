@@ -38,26 +38,26 @@ async def login(req: LoginRequest, response: Response):
 
 
 @app.post("/logout")
-async def logout(response: Response):
+async def logout(response: Response, user: dict = Depends(authenticator.verify_token)):
     response.delete_cookie(key="token", path="/")
     return {"detail": "Sessão terminada."}
 
 
-@app.post("/memory", response_model = MemoryResponse)
-async def memory_request(user: dict = Depends(authenticator.verify_token)):
-    ...
+# @app.post("/memory", response_model = MemoryResponse)
+# async def memory_request(user: dict = Depends(authenticator.verify_token)):
+#     ...
 
 @app.post("/chat", response_model = ChatResponse)
 async def chat(req: ChatRequest, user: dict = Depends(authenticator.verify_token)):
 
-    user_message = req.message    
+    # long_term_memory = memory.get_long_term_memory(message=req.message)
+    long_term_memory = None
 
-    long_term_memory = memory.get_long_term_memory(message=user_message)
     buffers = memory.get_history()
 
     result = chat_with_llm(message=req.message, history=buffers, long_term=long_term_memory)
 
-    memory.add(new_question=user_message, new_answer=result)
+    # memory.add(new_question=req.message, new_answer=result)
 
     return ChatResponse(message=result)
 

@@ -1,0 +1,112 @@
+/* Sidebar (componente partilhado) */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 0;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sidebar-brand .icon {
+  width: 32px;
+  height: 32px;
+  background: var(--accent-lo);
+  border: 1px solid rgba(124,106,247,.3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sidebar-brand .icon svg { width: 15px; height: 15px; color: var(--accent); }
+.sidebar-brand .brand-text h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  margin: 0 0 2px;
+}
+.sidebar-brand .brand-text span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 8px;
+}
+.nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .8px;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding: 10px 8px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background .12s, color .12s;
+  user-select: none;
+}
+.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.nav-item:hover  { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--accent-lo); color: var(--accent); }
+.nav-item.active svg { color: var(--accent); }
+
+.sidebar-footer {
+  border-top: 1px solid var(--border);
+  padding: 12px 12px;
+  flex-shrink: 0;
+}
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 10px;
+}
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  background: var(--accent-lo);
+  border: 1px solid rgba(124,106,247,.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.user-info .user-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.user-info .user-status { font-size: 11px; color: var(--muted); }
+
+.sidebar-footer .btn-ghost {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.sidebar-footer .btn-ghost svg { width: 13px; height: 13px; }

@@ -1,7 +1,7 @@
-/* ── Reset ──────────────────────────────────────────────── */
+/* RESET */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Tokens ─────────────────────────────────────────────── */
+/* TOKENS */
 :root {
   --bg:        #0b0c10;
   --surface:   #13141a;
@@ -17,6 +17,7 @@
   --radius-sm: 6px;
 }
 
+/* BASE */
 body {
   background: var(--bg);
   color: var(--text);
@@ -27,12 +28,12 @@ body {
   overflow: hidden;
 }
 
-/* ── Scrollbar ───────────────────────────────────────────── */
+/* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-/* ── Shared inputs ───────────────────────────────────────── */
+/* SHARED - INPUTS */
 .field {
   width: 100%;
   background: var(--bg);
@@ -51,7 +52,7 @@ body {
 }
 .field::placeholder { color: var(--muted); }
 
-/* ── Shared buttons ──────────────────────────────────────── */
+/* SHARED - BUTTONS */
 .btn-primary {
   background: var(--accent);
   border: none;
@@ -79,7 +80,7 @@ body {
 }
 .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ── Label ───────────────────────────────────────────────── */
+/* SHARED - LABEL */
 .lbl {
   display: block;
   font-size: 12px;
@@ -89,7 +90,7 @@ body {
   letter-spacing: .3px;
 }
 
-/* ── Error banner ────────────────────────────────────────── */
+/* SHARED - ERROR BANNER */
 .error-banner {
   background: rgba(224,92,106,.1);
   border: 1px solid rgba(224,92,106,.3);
@@ -101,32 +102,26 @@ body {
 }
 .error-banner.show { display: block; }
 
-/* ── Nav context menu (botão direito na navbar) ─────────────
-   Partilhado entre todas as páginas através de navbar.js       */
-.context-menu {
-  position: fixed;
-  z-index: 1000;
-  min-width: 200px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 4px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.4);
-  display: none;
+/* SHARED - APP LAYOUT (páginas com sidebar) */
+.app-layout {
+  display: flex;
+  flex-direction: row;
 }
-.context-menu-item {
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* SHARED - BRAND ICON (index.html e login.html) */
+.brand-icon {
+  background: var(--accent-lo);
+  border: 1px solid rgba(124,106,247,.3);
+  border-radius: 14px;
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 9px 10px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-  cursor: pointer;
-  user-select: none;
-  transition: background .12s, color .12s;
+  justify-content: center;
 }
-.context-menu-item svg { width: 14px; height: 14px; color: var(--muted); flex-shrink: 0; }
-.context-menu-item:hover        { background: var(--accent-lo); color: var(--accent); }
-.context-menu-item:hover svg    { color: var(--accent); }
+.brand-icon svg { color: var(--accent); }

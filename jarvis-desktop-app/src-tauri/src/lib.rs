@@ -27,6 +27,21 @@ async fn login(state: tauri::State<'_, AppState>, username: String, password: St
 }
 
 #[tauri::command]
+async fn logout(state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let res = state.client
+        .post("http://127.0.0.1:8000/logout")
+        .send()
+        .await
+        .map_err(|e| format!("Erro de ligação: {e}"))?;
+
+    match res.status().as_u16() {
+        200 => Ok(()),
+        401 => Err("401: Não autenticado.".into()),
+        status => Err(format!("Servidor devolveu HTTP {status}")),
+    }
+}
+
+#[tauri::command]
 async fn chat(state: tauri::State<'_, AppState>, message: String) -> Result<String, String> {
     let res = state.client
         .post("http://127.0.0.1:8000/chat")
@@ -60,7 +75,7 @@ pub fn run() {
                     .build()
                     .unwrap(),
         })
-        .invoke_handler(tauri::generate_handler![chat, login])
+        .invoke_handler(tauri::generate_handler![chat, login, logout])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
