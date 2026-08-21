@@ -65,6 +65,27 @@ async fn chat(state: tauri::State<'_, AppState>, message: String) -> Result<Stri
     }
 }
 
+#[tauri::command]
+async fn memory(state: tauri::State<'_, AppState>) -> Result<api_classes::MemoryResponse, String> {
+    let res = state.client
+        .post("http://127.0.0.1:8000/memory")
+        .send()
+        .await
+        .map_err(|e| format!("Erro de ligação: {e}"))?;
+
+    match res.status().as_u16() {
+        401 => Err("401: Token Expirado ou Inválido".into()),
+        200 => {
+            let body: api_classes::MemoryResponse = res
+                .json()
+                .await
+                .map_err(|e| format!("Erro ao ler resposta: {e}"))?;
+            Ok(body)
+        }
+        status => Err(format!("Servidor devolveu HTTP {status}")),
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -75,7 +96,7 @@ pub fn run() {
                     .build()
                     .unwrap(),
         })
-        .invoke_handler(tauri::generate_handler![chat, login, logout])
+        .invoke_handler(tauri::generate_handler![chat, login, logout, memory])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

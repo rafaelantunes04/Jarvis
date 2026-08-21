@@ -56,22 +56,6 @@ class Memory:
 
         buffer.clear()
 
-    def get_history(self) -> list[dict[str, str]]:
-        """
-        Returns the buffers as a list of role/content dicts
-        """
-        messages = []
-
-        all_exchanges = self.conv_buffer.get_history()
-        all_exchanges.extend(self.token_buffer.get_history())
-
-        for exchange in all_exchanges:
-            messages.append({"role": "user", "content": exchange["question"]})
-            messages.append({"role": "assistant", "content": exchange["answer"]})
-
-        return messages
-
-
     def get_long_term_memory(self, message: str = "", limit: int = 5):
         """
         Retrieves long-term memories from mem0.

@@ -16,7 +16,16 @@ class LoginRequest(BaseModel):
 
 
 class MemoryResponse(BaseModel):
-    ...
+    """
+    (Recieved Header)
+    Class used by FastAPI for the memory response
+
+    (Used in main.py on Memory Response /POST arguments)
+    """
+    conv_buffer: list[dict]
+    token_buffer: list[dict]
+    long_term_memory: list
+
 
 class ChatRequest(BaseModel):
     """
@@ -26,7 +35,6 @@ class ChatRequest(BaseModel):
     (Used in main.py on Login /POST arguments)
     """
     message: str
-
 
 
 class ChatResponse(BaseModel):

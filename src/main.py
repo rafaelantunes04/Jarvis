@@ -36,16 +36,20 @@ async def login(req: LoginRequest, response: Response):
         path="/",
     )
 
-
+ 
 @app.post("/logout")
 async def logout(response: Response, user: dict = Depends(authenticator.verify_token)):
     response.delete_cookie(key="token", path="/")
     return {"detail": "Sessão terminada."}
 
 
-# @app.post("/memory", response_model = MemoryResponse)
-# async def memory_request(user: dict = Depends(authenticator.verify_token)):
-#     ...
+@app.post("/memory", response_model = MemoryResponse)
+async def memory_request(user: dict = Depends(authenticator.verify_token)):
+    return MemoryResponse(
+        conv_buffer=memory.conv_buffer.get_history(),
+        token_buffer=memory.token_buffer.get_history(),
+        long_term_memory=memory.get_long_term_memory(),
+    )
 
 @app.post("/chat", response_model = ChatResponse)
 async def chat(req: ChatRequest, user: dict = Depends(authenticator.verify_token)):

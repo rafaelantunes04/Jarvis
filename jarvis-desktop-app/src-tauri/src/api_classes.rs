@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-// use serde_json::Value;
+use serde_json::Value;
 
 // Login
 #[derive(Serialize)]
@@ -19,11 +19,16 @@ pub struct ChatResponse {
     pub message: String,
 }
 
-/*
 // Memory
- #[derive(Deserialize)]
- pub struct MemoryResponse {
-     pub conv_buffer: Vec<Value>,
-     pub token_buffer: Vec<Value>,
- }
-*/
+#[derive(Deserialize, Serialize)]
+pub struct MemoryMessageExchange {
+    pub question: String,
+    pub answer: String,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct MemoryResponse {
+    pub conv_buffer: Vec<MemoryMessageExchange>,
+    pub token_buffer: Vec<MemoryMessageExchange>,
+    pub long_term_memory: Vec<Value>,
+}
