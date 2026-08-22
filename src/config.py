@@ -10,7 +10,7 @@ PORT = 8000
 
 # AUTH
 MAX_ATTEMPTS = 5
-WINDOW_SECONDS = 3600
+WINDOW_SECONDS = 2000
 
 # LLM
 DEFAULT_MODEL = "qwen2.5:3b"
@@ -35,7 +35,7 @@ SLIDING_WINDOW_MAX_TOKENS = 2500
 SLIDING_WINDOW_PATH = "./storage/"
 
 #   Memoria Longo Prazo
-MEMORY_LLM = "qwen2.5:3b"
+MEMORY_LLM = "qwen3.5:9b"
 EMBED_MODEL = "nomic-embed-text"
 
 MEMORY_DB_PATH = "/storage/memory_db"

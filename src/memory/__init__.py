@@ -22,6 +22,7 @@ class Memory:
         # flush in case the limit is already exceeded
         if self.token_buffer._exceeds_limit():
             self._add_to_long_term_memory(self.token_buffer)
+            self.token_buffer.clear()
 
 
     def add(self, new_question: str, new_answer: str) -> None:
@@ -37,11 +38,12 @@ class Memory:
 
         switching_conv = self.conv_buffer.pop()
 
+        self.token_buffer.add(switching_conv["question"], switching_conv["answer"])
+
         if self.token_buffer._exceeds_limit():
             self._add_to_long_term_memory(self.token_buffer)
             self.token_buffer.clear()
 
-        self.token_buffer.add(switching_conv["question"], switching_conv["answer"])
 
         self.conv_buffer.update_json()
         self.token_buffer.update_json()
@@ -66,10 +68,15 @@ class Memory:
     def _add_to_long_term_memory(self, buffer: Buffer) -> None:
         """
         Sends the exchanges to long-term memory (mem0) and clears them
-        """        
-        messages = buffer.get_history()
+        """
+        exchanges = buffer.get_history()
 
-        self.long_term_memory.add(messages=messages, filters={"user_id": USER_ID})
+        messages = []
+        for exchange in exchanges:
+            messages.append({"role": "user", "content": exchange["question"]})
+            messages.append({"role": "assistant", "content": exchange["answer"]})
+
+        self.long_term_memory.add(messages=messages, user_id=USER_ID)
 
     def get_long_term_memory(self, message: str = "", limit: int = 5):
         """
