@@ -7,7 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "chromadb>=1.5.9",
     "fastapi[standard]>=0.138.1",
-    "mem0ai[extras]>=2.0.14",
+    "mem0ai[extras,nlp]>=2.0.14",
     "ollama>=0.6.2",
     "pwdlib[argon2]>=0.3.0",
     "pyjwt>=2.13.0",

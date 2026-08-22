@@ -19,6 +19,14 @@ const SIDEBAR_NAV = [
     icon: `<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>`,
   },
   {
+    id: 'memory',
+    label: 'Memória',
+    href: 'memory.html',
+    icon: `<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+           <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+           <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>`,
+  },
+  {
     id: 'settings',
     label: 'Definições',
     href: 'settings.html',

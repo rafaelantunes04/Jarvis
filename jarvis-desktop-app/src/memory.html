@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jarvis - Memória</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/sidebar.css" />
+  <link rel="stylesheet" href="css/memory.css" />
+</head>
+<body class="app-layout">
+
+<!-- SIDEBAR (injetada por sidebar.js) -->
+<aside id="sidebar-mount"></aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="chat-header">
+    <div class="dot"></div>
+    <span class="title">Memória</span>
+    <button id="refresh-btn" class="btn-ghost mem-refresh">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <polyline points="1 20 1 14 7 14"></polyline>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+      </svg>
+      Atualizar
+    </button>
+  </div>
+
+  <div id="memory-content">
+
+    <section class="mem-section" id="section-conv">
+      <div class="mem-section-header">
+        <h3>Buffer de Conversa</h3>
+        <span class="mem-count" id="count-conv">—</span>
+      </div>
+      <p class="mem-section-desc">Janela recente de trocas, limitada por número de mensagens.</p>
+      <div class="mem-list" id="list-conv"></div>
+    </section>
+
+    <section class="mem-section" id="section-token">
+      <div class="mem-section-header">
+        <h3>Buffer de Tokens</h3>
+        <span class="mem-count" id="count-token">—</span>
+      </div>
+      <p class="mem-section-desc">Janela intermédia, limitada por número de tokens, antes de ir para a memória de longo prazo.</p>
+      <div class="mem-list" id="list-token"></div>
+    </section>
+
+    <section class="mem-section" id="section-longterm">
+      <div class="mem-section-header">
+        <h3>Memória de Longo Prazo</h3>
+        <span class="mem-count" id="count-longterm">—</span>
+      </div>
+      <p class="mem-section-desc">Factos persistidos no mem0.</p>
+      <div class="mem-list" id="list-longterm"></div>
+    </section>
+
+  </div>
+
+</main>
+
+<script src="js/sidebar.js"></script>
+<script src="js/memory.js"></script>
+</body>
+</html>

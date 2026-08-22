@@ -54,8 +54,7 @@ async def memory_request(user: dict = Depends(authenticator.verify_token)):
 @app.post("/chat", response_model = ChatResponse)
 async def chat(req: ChatRequest, user: dict = Depends(authenticator.verify_token)):
 
-    # long_term_memory = memory.get_long_term_memory(message=req.message)
-    long_term_memory = None
+    long_term_memory = memory.get_long_term_memory(message=req.message)
 
     buffers = memory.get_history()
 

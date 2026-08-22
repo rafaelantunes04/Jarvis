@@ -1,0 +1,123 @@
+/* Header refresh button */
+.mem-refresh {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mem-refresh svg { width: 13px; height: 13px; }
+.mem-refresh.spinning svg { animation: mem-spin .7s linear infinite; }
+@keyframes mem-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Content */
+#memory-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.mem-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.mem-section-header h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.mem-count {
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+.mem-section-desc {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+  margin-bottom: 12px;
+}
+
+.mem-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Empty / loading / error state per section */
+.mem-empty, .mem-loading, .mem-error {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 14px 15px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+.mem-error {
+  color: var(--danger);
+  border-color: rgba(224,92,106,.3);
+  background: rgba(224,92,106,.08);
+  border-style: solid;
+}
+
+/* Exchange card (question/answer) */
+.mem-exchange {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.mem-exchange .mem-row {
+  padding: 10px 15px;
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+.mem-exchange .mem-row + .mem-row {
+  border-top: 1px solid var(--border);
+}
+.mem-exchange .mem-role {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.mem-exchange .mem-row.q { background: var(--surface); }
+.mem-exchange .mem-row.q .mem-role { color: #7a9ef7; }
+.mem-exchange .mem-row.a { background: var(--surface2); }
+.mem-exchange .mem-row.a .mem-role { color: var(--muted); }
+
+/* Long-term memory card */
+.mem-fact {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 11px 15px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.mem-fact-meta {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.mem-fact pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'Consolas', 'Menlo', monospace;
+  font-size: 12px;
+  color: var(--text);
+}
